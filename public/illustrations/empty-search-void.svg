@@ -1,0 +1,19 @@
+<svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true">
+  <!-- Background glow -->
+  <circle cx="100" cy="100" r="80" fill="var(--color-surface-container, #1e293b)" opacity="0.5"/>
+  <!-- Folder body -->
+  <path d="M55 90C55 85 58 82 62 82L85 82L92 70C94 68 97 67 100 67L138 67C142 67 145 70 145 74L145 130C145 135 142 138 138 138L62 138C58 138 55 135 55 130Z" fill="var(--color-surface-container-highest, #273548)" stroke="var(--color-on-surface-variant, #a1a1aa)" stroke-width="1.5" stroke-opacity="0.3"/>
+  <!-- Folder tab -->
+  <path d="M55 90L55 85C55 82 58 80 61 80L87 80L94 69C95.5 67 97.5 66 99.5 66L100.5 66" stroke="var(--color-primary, #6dddff)" stroke-width="2" stroke-opacity="0.5" stroke-linecap="round"/>
+  <!-- Magnifying glass -->
+  <circle cx="120" cy="120" r="22" fill="var(--color-surface-container, #1e293b)" stroke="var(--color-primary, #6dddff)" stroke-width="2.5"/>
+  <circle cx="120" cy="120" r="15" stroke="var(--color-primary, #6dddff)" stroke-width="1.5" stroke-opacity="0.4" stroke-dasharray="3 3"/>
+  <line x1="136" y1="136" x2="148" y2="148" stroke="var(--color-primary, #6dddff)" stroke-width="3" stroke-linecap="round"/>
+  <!-- Question marks -->
+  <text x="80" y="115" font-family="sans-serif" font-size="14" font-weight="bold" fill="var(--color-on-surface-variant, #a1a1aa)" opacity="0.4" text-anchor="middle">?</text>
+  <text x="100" y="105" font-family="sans-serif" font-size="10" font-weight="bold" fill="var(--color-on-surface-variant, #a1a1aa)" opacity="0.25" text-anchor="middle">?</text>
+  <!-- Decorative dots -->
+  <circle cx="65" cy="105" r="2" fill="var(--color-primary, #6dddff)" opacity="0.3"/>
+  <circle cx="135" cy="95" r="1.5" fill="var(--color-secondary, #d674ff)" opacity="0.3"/>
+  <circle cx="75" cy="130" r="1.5" fill="var(--color-tertiary, #00d2fd)" opacity="0.3"/>
+</svg>
