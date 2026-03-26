@@ -1,0 +1,143 @@
+{
+  "component": "EmptyState",
+  "version": "1.0.0",
+  "description": "Empty state shown when search returns no results",
+  "illustrations": {
+    "search_void": "illustrations/empty-search-void.svg",
+    "paper_plane": "illustrations/empty-paper-plane.svg",
+    "treasure_map": "illustrations/empty-treasure-map.svg"
+  },
+  "illustration_variants": ["search_void", "paper_plane", "treasure_map"],
+  "default_illustration": "search_void",
+  "copy_variants": {
+    "friendly": {
+      "en": {
+        "headline": "No papers found",
+        "body": "We couldn't find any papers matching \"{query}\". Try a different search or be the first to contribute!",
+        "cta": "Be the first to upload this paper!",
+        "secondary": "Clear filters"
+      },
+      "es": {
+        "headline": "No se encontraron trabajos",
+        "body": "No pudimos encontrar trabajos que coincidan con \"{query}\". Intenta una búsqueda diferente o ¡sé el primero en contribuir!",
+        "cta": "¡Sé el primero en subir este trabajo!",
+        "secondary": "Limpiar filtros"
+      },
+      "fr": {
+        "headline": "Aucun document trouvé",
+        "body": "Nous n'avons trouvé aucun document correspondant à \"{query}\". Essayez une autre recherche ou soyez le premier à contribuer !",
+        "cta": "Soyez le premier à télécharger ce document !",
+        "secondary": "Effacer les filtres"
+      },
+      "de": {
+        "headline": "Keine Unterlagen gefunden",
+        "body": "Wir konnten keine Unterlagen finden, die \"{query}\" entsprechen. Versuchen Sie eine andere Suche oder seien Sie der Erste, der einen Beitrag leistet!",
+        "cta": "Seien Sie der Erste, der diese Arbeit hochlädt!",
+        "secondary": "Filter löschen"
+      },
+      "zh": {
+        "headline": "未找到论文",
+        "body": "我们找不到与\"{query}\"匹配的论文。尝试其他搜索或成为第一个贡献者！",
+        "cta": "成为第一个上传此论文的人！",
+        "secondary": "清除筛选"
+      }
+    },
+    "confident": {
+      "en": {
+        "headline": "Nothing here yet",
+        "body": "No papers match \"{query}\". This looks like an opportunity — upload the first one and help others study.",
+        "cta": "Be the first to upload this paper!",
+        "secondary": "Clear filters"
+      },
+      "es": {
+        "headline": "Todavía no hay nada aquí",
+        "body": "Ningún trabajo coincide con \"{query}\". Esto parece una oportunidad — sube el primero y ayuda a otros a estudiar.",
+        "cta": "¡Sé el primero en subir este trabajo!",
+        "secondary": "Limpiar filtros"
+      },
+      "fr": {
+        "headline": "Rien ici pour l'instant",
+        "body": "Aucun document ne correspond à \"{query}\". C'est une opportunité — téléchargez le premier et aidez les autres à étudier.",
+        "cta": "Soyez le premier à télécharger ce document !",
+        "secondary": "Effacer les filtres"
+      },
+      "de": {
+        "headline": "Noch nichts hier",
+        "body": "Keine Unterlagen entsprechen \"{query}\". Das ist eine Gelegenheit — laden Sie die erste hoch und helfen Sie anderen beim Lernen.",
+        "cta": "Seien Sie der Erste, der diese Arbeit hochlädt!",
+        "secondary": "Filter löschen"
+      },
+      "zh": {
+        "headline": "这里还没有内容",
+        "body": "没有与\"{query}\"匹配的论文。这是一个机会——上传第一篇，帮助其他人学习。",
+        "cta": "成为第一个上传此论文的人！",
+        "secondary": "清除筛选"
+      }
+    },
+    "whimsical": {
+      "en": {
+        "headline": "This shelf is empty!",
+        "body": "We searched high and low for papers matching \"{query}\" but came up empty-handed. Maybe you have what we're looking for?",
+        "cta": "Be the first to upload this paper!",
+        "secondary": "Clear filters"
+      },
+      "es": {
+        "headline": "¡Este estante está vacío!",
+        "body": "Buscamos arriba y abajo trabajos que coincidan con \"{query}\" pero no encontramos nada. ¿Tal vez tú tienes lo que buscamos?",
+        "cta": "¡Sé el primero en subir este trabajo!",
+        "secondary": "Limpiar filtros"
+      },
+      "fr": {
+        "headline": "Cette étagère est vide !",
+        "body": "Nous avons cherché partout des documents correspondant à \"{query}\" mais nous n'avons rien trouvé. Peut-être avez-vous ce que nous cherchons ?",
+        "cta": "Soyez le premier à télécharger ce document !",
+        "secondary": "Effacer les filtres"
+      },
+      "de": {
+        "headline": "Dieses Regal ist leer!",
+        "body": "Wir haben überall nach Unterlagen gesucht, die \"{query}\" entsprechen, aber nichts gefunden. Vielleicht haben Sie, was wir suchen?",
+        "cta": "Seien Sie der Erste, der diese Arbeit hochlädt!",
+        "secondary": "Filter löschen"
+      },
+      "zh": {
+        "headline": "这个书架是空的！",
+        "body": "我们到处搜索与\"{query}\"匹配的论文，但一无所获。也许你有我们在找的东西？",
+        "cta": "成为第一个上传此论文的人！",
+        "secondary": "清除筛选"
+      }
+    }
+  },
+  "default_copy_variant": "friendly",
+  "default_locale": "en",
+  "supported_locales": ["en", "es", "fr", "de", "zh"],
+  "alt_text": {
+    "en": "Illustration of an empty folder with a magnifying glass, indicating no search results were found",
+    "es": "Ilustración de una carpeta vacía con una lupa, indicando que no se encontraron resultados",
+    "fr": "Illustration d'un dossier vide avec une loupe, indiquant qu'aucun résultat n'a été trouvé",
+    "de": "Illustration eines leeren Ordners mit einer Lupe, die anzeigt, dass keine Ergebnisse gefunden wurden",
+    "zh": "空文件夹和放大镜的插图，表示未找到搜索结果"
+  },
+  "aria": {
+    "cta_label": {
+      "en": "Upload a paper for this search query",
+      "es": "Subir un trabajo para esta consulta de búsqueda",
+      "fr": "Télécharger un document pour cette recherche",
+      "de": "Eine Arbeit für diese Suchanfrage hochladen",
+      "zh": "为此搜索查询上传论文"
+    }
+  },
+  "analytics": {
+    "impression_event": "emptyStateImpression",
+    "cta_click_event": "emptyStateCtaClick",
+    "required_properties": ["search_query", "illustration_variant", "copy_variant", "locale", "timestamp"]
+  },
+  "design_tokens": {
+    "illustration_size": { "mobile": "w-32 h-32", "desktop": "w-48 h-48" },
+    "headline": "text-xl md:text-2xl font-display font-bold text-on-surface",
+    "body": "text-sm md:text-base text-on-surface-variant max-w-md mx-auto",
+    "cta_primary": "btn-primary",
+    "cta_secondary": "btn-secondary",
+    "gap_between_elements": "gap-4 md:gap-6",
+    "container_padding": "py-12 md:py-16 px-4"
+  }
+}
