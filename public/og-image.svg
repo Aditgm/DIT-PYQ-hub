@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#070e1a"/>
+      <stop offset="100%" style="stop-color:#0c1321"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#6dddff"/>
+      <stop offset="100%" style="stop-color:#00d2fd"/>
+    </linearGradient>
+    <linearGradient id="accent2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#d674ff"/>
+      <stop offset="100%" style="stop-color:#b850ff"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  
+  <!-- Decorative circles -->
+  <circle cx="150" cy="100" r="200" fill="#6dddff" opacity="0.04"/>
+  <circle cx="1050" cy="530" r="250" fill="#d674ff" opacity="0.04"/>
+  <circle cx="900" cy="150" r="120" fill="#82a3ff" opacity="0.03"/>
+  
+  <!-- Grid dots -->
+  <g opacity="0.15">
+    <circle cx="100" cy="300" r="3" fill="#6dddff"/>
+    <circle cx="200" cy="300" r="3" fill="#6dddff"/>
+    <circle cx="1000" cy="330" r="3" fill="#d674ff"/>
+    <circle cx="1100" cy="330" r="3" fill="#d674ff"/>
+    <circle cx="100" cy="500" r="3" fill="#82a3ff"/>
+    <circle cx="1100" cy="130" r="3" fill="#82a3ff"/>
+  </g>
+  
+  <!-- Logo mark -->
+  <rect x="120" y="200" width="60" height="60" rx="12" fill="url(#accent)"/>
+  <text x="150" y="240" font-family="sans-serif" font-size="32" font-weight="bold" fill="#070e1a" text-anchor="middle">D</text>
+  
+  <!-- Brand name -->
+  <text x="200" y="242" font-family="sans-serif" font-size="28" font-weight="bold" fill="#e8eaed">DIT PYQ Hub</text>
+  
+  <!-- Main heading -->
+  <text x="120" y="340" font-family="sans-serif" font-size="52" font-weight="bold" fill="#e8eaed">
+    Previous Year
+  </text>
+  <text x="120" y="400" font-family="sans-serif" font-size="52" font-weight="bold" fill="url(#accent)">
+    Question Papers
+  </text>
+  
+  <!-- Subtitle -->
+  <text x="120" y="460" font-family="sans-serif" font-size="22" fill="#9aa0a6">
+    Free access to exam papers for DIT University students
+  </text>
+  
+  <!-- Feature badges -->
+  <rect x="120" y="500" width="140" height="36" rx="18" fill="rgba(109,221,255,0.1)" stroke="rgba(109,221,255,0.3)" stroke-width="1"/>
+  <text x="190" y="523" font-family="sans-serif" font-size="14" fill="#6dddff" text-anchor="middle">Free Download</text>
+  
+  <rect x="280" y="500" width="130" height="36" rx="18" fill="rgba(214,116,255,0.1)" stroke="rgba(214,116,255,0.3)" stroke-width="1"/>
+  <text x="345" y="523" font-family="sans-serif" font-size="14" fill="#d674ff" text-anchor="middle">All Subjects</text>
+  
+  <rect x="430" y="500" width="140" height="36" rx="18" fill="rgba(34,197,94,0.1)" stroke="rgba(34,197,94,0.3)" stroke-width="1"/>
+  <text x="500" y="523" font-family="sans-serif" font-size="14" fill="#22c55e" text-anchor="middle">All Semesters</text>
+</svg>
