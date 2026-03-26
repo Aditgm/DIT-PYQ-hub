@@ -1,0 +1,28 @@
+<svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true">
+  <!-- Background circle -->
+  <circle cx="100" cy="100" r="80" fill="var(--color-surface-container, #1e293b)" opacity="0.4"/>
+  <!-- Map scroll -->
+  <rect x="45" y="55" width="110" height="90" rx="6" fill="var(--color-surface-container-highest, #273548)" stroke="var(--color-on-surface-variant, #a1a1aa)" stroke-width="1.5" stroke-opacity="0.3"/>
+  <!-- Map scroll curls -->
+  <ellipse cx="45" cy="55" rx="8" ry="12" fill="var(--color-surface-container, #1e293b)" stroke="var(--color-on-surface-variant, #a1a1aa)" stroke-width="1" stroke-opacity="0.2"/>
+  <ellipse cx="155" cy="145" rx="8" ry="12" fill="var(--color-surface-container, #1e293b)" stroke="var(--color-on-surface-variant, #a1a1aa)" stroke-width="1" stroke-opacity="0.2"/>
+  <!-- Dashed path on map -->
+  <path d="M65 110C75 90 90 85 100 95C110 105 120 80 140 75" stroke="var(--color-primary, #6dddff)" stroke-width="2" stroke-opacity="0.4" stroke-dasharray="4 4" fill="none" stroke-linecap="round"/>
+  <!-- X marks the spot -->
+  <line x1="133" y1="68" x2="147" y2="82" stroke="var(--color-primary, #6dddff)" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="147" y1="68" x2="133" y2="82" stroke="var(--color-primary, #6dddff)" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- Location pin -->
+  <circle cx="100" cy="105" r="6" fill="var(--color-secondary, #d674ff)" opacity="0.6"/>
+  <circle cx="100" cy="105" r="3" fill="var(--color-surface-container-highest, #273548)"/>
+  <!-- Treasure chest hint -->
+  <rect x="65" y="115" width="20" height="14" rx="2" fill="var(--color-tertiary, #00d2fd)" opacity="0.3"/>
+  <path d="M65 119L85 119" stroke="var(--color-tertiary, #00d2fd)" stroke-width="1" opacity="0.4"/>
+  <!-- Compass rose -->
+  <circle cx="75" cy="80" r="10" stroke="var(--color-on-surface-variant, #a1a1aa)" stroke-width="1" stroke-opacity="0.2" fill="none"/>
+  <path d="M75 72L76 78L75 74L74 78Z" fill="var(--color-primary, #6dddff)" opacity="0.5"/>
+  <path d="M75 88L74 82L75 86L76 82Z" fill="var(--color-on-surface-variant, #a1a1aa)" opacity="0.3"/>
+  <!-- Sparkles around X -->
+  <circle cx="125" cy="62" r="1.5" fill="var(--color-secondary, #d674ff)" opacity="0.5"/>
+  <circle cx="152" cy="72" r="1" fill="var(--color-primary, #6dddff)" opacity="0.4"/>
+  <circle cx="140" cy="90" r="1.5" fill="var(--color-tertiary, #00d2fd)" opacity="0.3"/>
+</svg>
