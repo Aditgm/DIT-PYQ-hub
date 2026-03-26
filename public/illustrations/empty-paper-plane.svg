@@ -1,0 +1,23 @@
+<svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true">
+  <!-- Background circle -->
+  <circle cx="100" cy="100" r="80" fill="var(--color-surface-container, #1e293b)" opacity="0.4"/>
+  <!-- Paper/document stack -->
+  <rect x="60" y="100" width="50" height="65" rx="4" fill="var(--color-surface-container-highest, #273548)" stroke="var(--color-on-surface-variant, #a1a1aa)" stroke-width="1" stroke-opacity="0.2" transform="rotate(-5 85 132)"/>
+  <rect x="68" y="95" width="50" height="65" rx="4" fill="var(--color-surface-container-highest, #273548)" stroke="var(--color-on-surface-variant, #a1a1aa)" stroke-width="1" stroke-opacity="0.3" transform="rotate(3 93 127)"/>
+  <!-- Text lines on paper -->
+  <line x1="78" y1="110" x2="108" y2="111" stroke="var(--color-on-surface-variant, #a1a1aa)" stroke-width="1.5" stroke-opacity="0.2" stroke-linecap="round"/>
+  <line x1="78" y1="118" x2="103" y2="119" stroke="var(--color-on-surface-variant, #a1a1aa)" stroke-width="1.5" stroke-opacity="0.2" stroke-linecap="round"/>
+  <line x1="78" y1="126" x2="98" y2="127" stroke="var(--color-on-surface-variant, #a1a1aa)" stroke-width="1.5" stroke-opacity="0.15" stroke-linecap="round"/>
+  <!-- Paper plane -->
+  <path d="M120 55L145 85L125 78L110 95L108 75L120 55Z" fill="var(--color-primary, #6dddff)" opacity="0.8"/>
+  <path d="M120 55L145 85L125 78" stroke="var(--color-primary, #6dddff)" stroke-width="1.5" fill="none"/>
+  <!-- Trail dots -->
+  <circle cx="105" cy="72" r="2" fill="var(--color-primary, #6dddff)" opacity="0.4"/>
+  <circle cx="95" cy="65" r="1.5" fill="var(--color-primary, #6dddff)" opacity="0.3"/>
+  <circle cx="88" cy="58" r="1" fill="var(--color-primary, #6dddff)" opacity="0.2"/>
+  <!-- Dashed orbit -->
+  <ellipse cx="100" cy="100" rx="70" ry="60" stroke="var(--color-primary, #6dddff)" stroke-width="1" stroke-opacity="0.1" stroke-dasharray="4 6" fill="none"/>
+  <!-- Sparkles -->
+  <path d="M155 50L157 46L159 50L163 52L159 54L157 58L155 54L151 52Z" fill="var(--color-secondary, #d674ff)" opacity="0.4"/>
+  <path d="M45 70L46.5 67L48 70L51 71.5L48 73L46.5 76L45 73L42 71.5Z" fill="var(--color-tertiary, #00d2fd)" opacity="0.3"/>
+</svg>
