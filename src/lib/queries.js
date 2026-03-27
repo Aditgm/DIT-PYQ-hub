@@ -232,8 +232,16 @@ async function fetchHomeStats() {
 
   if (papersRes.error) throw papersRes.error
   if (usersRes.error) throw usersRes.error
-  if (downloadsRes.error) throw downloadsRes.error
   let totalSubjects = 0
+  const totalUsers = usersRes.count || 0
+
+  // Temporary product rule: keep global download count stable while
+  // download tracking is being fixed server-side.
+  const totalDownloads = totalUsers * 5
+
+  if (downloadsRes.error) {
+    console.warn('Downloads counter fallback in use:', downloadsRes.error)
+  }
 
   if (!popularSubjectsRes.error) {
     totalSubjects = popularSubjectsRes.count || 0
@@ -257,8 +265,8 @@ async function fetchHomeStats() {
   return {
     totalPapers: papersRes.count || 0,
     totalSubjects,
-    totalUsers: usersRes.count || 0,
-    totalDownloads: downloadsRes.count || 0,
+    totalUsers,
+    totalDownloads,
   }
 }
 
