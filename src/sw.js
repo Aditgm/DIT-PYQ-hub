@@ -15,14 +15,11 @@ cleanupOutdatedCaches()
 clientsClaim()
 
 // ── Custom update activation ──────────────────────────────────────
-// On install, the new SW enters the "waiting" state. It does NOT
-// call skipWaiting() here. Instead, it waits for the client to send
-// a SKIP_WAITING message via postMessage. This lets the UI show an
-// update notification and let the user choose when to reload.
+// Activate the new service worker immediately so clients don't remain
+// pinned to stale bundles (for example, old API URL logic).
 
 self.addEventListener('install', () => {
-  // Intentionally empty: do NOT call skipWaiting here.
-  // The SW will sit in "waiting" until the client triggers activation.
+  self.skipWaiting()
 })
 
 self.addEventListener('message', (event) => {
