@@ -2,8 +2,34 @@ import { useQuery } from '@tanstack/react-query'
 import { supabase } from './supabase'
 import { sanitizeSearchQuery } from './utils'
 
-const API_BASE_URL = import.meta.env.VITE_API_URL
-  || `${window.location.protocol}//${window.location.hostname}:3001`
+function resolveApiBaseUrl() {
+  const envUrl = import.meta.env.VITE_API_URL?.trim()
+  const isBrowser = typeof window !== 'undefined'
+
+  if (!isBrowser) {
+    return envUrl || ''
+  }
+
+  const isHttpsPage = window.location.protocol === 'https:'
+  const isLocalHost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+
+  if (envUrl) {
+    if (isHttpsPage && envUrl.startsWith('http://') && !isLocalHost) {
+      // Route through Vercel rewrite to avoid browser mixed-content blocks.
+      return ''
+    }
+
+    return envUrl.replace(/\/+$/, '')
+  }
+
+  if (!isLocalHost) {
+    return ''
+  }
+
+  return `${window.location.protocol}//${window.location.hostname}:3001`
+}
+
+const API_BASE_URL = resolveApiBaseUrl()
 
 export const queryKeys = {
   popularSubjects: ['popularSubjects'],
