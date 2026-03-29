@@ -4,6 +4,9 @@ import helmet from 'helmet';
 import dotenv from 'dotenv';
 import { createSupabaseClient } from './services/supabase.js';
 import downloadRouter from './routes/download.js';
+import messagesRouter from './routes/messages.js';
+import requestsRouter from './routes/requests.js';
+import notificationsRouter from './routes/notifications.js';
 
 dotenv.config();
 
@@ -24,6 +27,9 @@ const supabase = createSupabaseClient();
 app.set('supabase', supabase);
 
 app.use('/api/download', downloadRouter);
+app.use('/api', messagesRouter);
+app.use('/api', requestsRouter);
+app.use('/api', notificationsRouter);
 
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
