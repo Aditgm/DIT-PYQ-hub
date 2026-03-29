@@ -1,26 +1,42 @@
 import { supabase } from '../lib/supabase';
 
+function normalizeApiUrl(url) {
+  return url?.trim().replace(/\/+$/, '') || '';
+}
+
+function resolveEnvApiUrl() {
+  const rawUrl = import.meta.env.VITE_API_URL?.trim();
+  if (!rawUrl) return '';
+
+  if (typeof window !== 'undefined') {
+    const isHttpsPage = window.location.protocol === 'https:';
+    const isLocalHost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+
+    // If env accidentally uses http in production, prefer https to avoid mixed-content failures.
+    if (isHttpsPage && rawUrl.startsWith('http://') && !isLocalHost) {
+      return normalizeApiUrl(rawUrl.replace(/^http:\/\//i, 'https://'));
+    }
+  }
+
+  return normalizeApiUrl(rawUrl);
+}
+
 function resolveApiBaseUrl() {
-  const envUrl = import.meta.env.VITE_API_URL?.trim();
+  const envUrl = resolveEnvApiUrl();
   const isBrowser = typeof window !== 'undefined';
 
   if (!isBrowser) {
     return envUrl || '';
   }
 
-  const isHttpsPage = window.location.protocol === 'https:';
   const isLocalHost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 
   if (envUrl) {
-    if (isHttpsPage && envUrl.startsWith('http://') && !isLocalHost) {
-      // Route through Vercel rewrite to avoid browser mixed-content blocks.
-      return '';
-    }
-
-    return envUrl.replace(/\/+$/, '');
+    return envUrl;
   }
 
   if (!isLocalHost) {
+    // Production fallback: rely on same-origin /api rewrite/proxy if configured.
     return '';
   }
 
@@ -28,6 +44,42 @@ function resolveApiBaseUrl() {
 }
 
 const API_BASE_URL = resolveApiBaseUrl();
+const ENV_API_BASE_URL = resolveEnvApiUrl();
+
+function getApiBaseCandidates() {
+  const candidates = [API_BASE_URL];
+
+  // If same-origin /api fails (404), retry explicit env host when available.
+  if (!candidates.includes(ENV_API_BASE_URL) && ENV_API_BASE_URL) {
+    candidates.push(ENV_API_BASE_URL);
+  }
+
+  return candidates.filter((value, index, arr) => arr.indexOf(value) === index);
+}
+
+async function fetchWithApiFallback(path, options) {
+  const bases = getApiBaseCandidates();
+  let lastResponse = null;
+  let lastError = null;
+
+  for (const base of bases) {
+    try {
+      const response = await fetch(`${base}${path}`, options);
+
+      if (response.status === 404 && bases.length > 1 && base !== bases[bases.length - 1]) {
+        lastResponse = response;
+        continue;
+      }
+
+      return response;
+    } catch (error) {
+      lastError = error;
+    }
+  }
+
+  if (lastResponse) return lastResponse;
+  throw lastError || new Error('Download service is unreachable');
+}
 
 /**
  * Fetch papers from Supabase with pagination, sorting, and filters.
@@ -91,7 +143,7 @@ export async function initiateDownload(paperId, authToken) {
   let response;
 
   try {
-    response = await fetch(`${API_BASE_URL}/api/download/initiate`, {
+    response = await fetchWithApiFallback('/api/download/initiate', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -101,14 +153,17 @@ export async function initiateDownload(paperId, authToken) {
     });
   } catch (err) {
     throw new Error(
-      `Download service is unreachable at ${API_BASE_URL}. Start the server (cd server && npm start) or set VITE_API_URL.`
+      `Download service is unreachable. Start the server (cd server && npm start) or set VITE_API_URL.`
     );
   }
 
   const responseData = await response.json().catch(() => null);
   
   if (!response.ok) {
-    const error = new Error(responseData?.error || 'Failed to initiate download');
+    const errorMessage = response.status === 404
+      ? 'Download API endpoint not found. Configure VITE_API_URL or deployment /api rewrite.'
+      : (responseData?.error || 'Failed to initiate download');
+    const error = new Error(errorMessage);
     error.status = response.status;
     error.nextAvailableTime = responseData?.nextAvailableTime;
     throw error;
@@ -127,7 +182,7 @@ export async function initiateDownload(paperId, authToken) {
  * @returns {Promise<{ valid: boolean, paperId: string, paperTitle: string, expiresAt: string }>}
  */
 export async function verifyDownloadToken(token) {
-  const response = await fetch(`${API_BASE_URL}/api/download/verify/${token}`);
+  const response = await fetchWithApiFallback(`/api/download/verify/${token}`);
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({ error: 'Verification failed' }));
@@ -144,7 +199,7 @@ export async function verifyDownloadToken(token) {
  * @returns {Promise<{ success: boolean, revoked: boolean }>}
  */
 export async function revokeDownloadToken(token, authToken) {
-  const response = await fetch(`${API_BASE_URL}/api/download/revoke`, {
+  const response = await fetchWithApiFallback('/api/download/revoke', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

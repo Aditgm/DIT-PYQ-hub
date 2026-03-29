@@ -2,24 +2,38 @@ import { useQuery } from '@tanstack/react-query'
 import { supabase } from './supabase'
 import { sanitizeSearchQuery } from './utils'
 
+function normalizeApiUrl(url) {
+  return url?.trim().replace(/\/+$/, '') || ''
+}
+
+function resolveEnvApiUrl() {
+  const rawUrl = import.meta.env.VITE_API_URL?.trim()
+  if (!rawUrl) return ''
+
+  if (typeof window !== 'undefined') {
+    const isHttpsPage = window.location.protocol === 'https:'
+    const isLocalHost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+
+    if (isHttpsPage && rawUrl.startsWith('http://') && !isLocalHost) {
+      return normalizeApiUrl(rawUrl.replace(/^http:\/\//i, 'https://'))
+    }
+  }
+
+  return normalizeApiUrl(rawUrl)
+}
+
 function resolveApiBaseUrl() {
-  const envUrl = import.meta.env.VITE_API_URL?.trim()
+  const envUrl = resolveEnvApiUrl()
   const isBrowser = typeof window !== 'undefined'
 
   if (!isBrowser) {
     return envUrl || ''
   }
 
-  const isHttpsPage = window.location.protocol === 'https:'
   const isLocalHost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
 
   if (envUrl) {
-    if (isHttpsPage && envUrl.startsWith('http://') && !isLocalHost) {
-      // Route through Vercel rewrite to avoid browser mixed-content blocks.
-      return ''
-    }
-
-    return envUrl.replace(/\/+$/, '')
+    return envUrl
   }
 
   if (!isLocalHost) {
@@ -30,6 +44,42 @@ function resolveApiBaseUrl() {
 }
 
 const API_BASE_URL = resolveApiBaseUrl()
+const ENV_API_BASE_URL = resolveEnvApiUrl()
+let downloadCountsApiUnavailable = false
+
+function getApiBaseCandidates() {
+  const candidates = [API_BASE_URL]
+
+  if (!candidates.includes(ENV_API_BASE_URL) && ENV_API_BASE_URL) {
+    candidates.push(ENV_API_BASE_URL)
+  }
+
+  return candidates.filter((value, index, arr) => arr.indexOf(value) === index)
+}
+
+async function fetchWithApiFallback(path, options) {
+  const bases = getApiBaseCandidates()
+  let lastResponse = null
+  let lastError = null
+
+  for (const base of bases) {
+    try {
+      const response = await fetch(`${base}${path}`, options)
+
+      if (response.status === 404 && bases.length > 1 && base !== bases[bases.length - 1]) {
+        lastResponse = response
+        continue
+      }
+
+      return response
+    } catch (error) {
+      lastError = error
+    }
+  }
+
+  if (lastResponse) return lastResponse
+  throw lastError || new Error('API request failed')
+}
 
 export const queryKeys = {
   popularSubjects: ['popularSubjects'],
@@ -101,31 +151,37 @@ async function fetchBrowsePapers(params) {
   if (papers.length > 0) {
     const paperIds = papers.map(p => p.id)
 
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/download/counts`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ paperIds }),
-      })
-
-      if (response.ok) {
-        const payload = await response.json()
-        Object.assign(downloadCounts, payload?.counts || {})
-      } else {
-        // Fallback to RPC if server endpoint is unavailable.
-        const { data: countsData } = await supabase.rpc('get_download_counts', { paper_ids: paperIds })
-        ;(countsData || []).forEach(d => {
-          downloadCounts[d.paper_id] = parseInt(d.count)
-        })
-      }
-    } catch {
-      // Fallback to RPC if server is not reachable.
+    const loadCountsViaRpc = async () => {
       const { data: countsData } = await supabase.rpc('get_download_counts', { paper_ids: paperIds })
       ;(countsData || []).forEach(d => {
         downloadCounts[d.paper_id] = parseInt(d.count)
       })
+    }
+
+    if (downloadCountsApiUnavailable) {
+      await loadCountsViaRpc()
+    } else {
+      try {
+        const response = await fetchWithApiFallback('/api/download/counts', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ paperIds }),
+        })
+
+        if (response.ok) {
+          const payload = await response.json()
+          Object.assign(downloadCounts, payload?.counts || {})
+        } else {
+          if (response.status === 404) {
+            downloadCountsApiUnavailable = true
+          }
+          await loadCountsViaRpc()
+        }
+      } catch {
+        await loadCountsViaRpc()
+      }
     }
   }
 
