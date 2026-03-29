@@ -7,7 +7,7 @@ import {
 import { supabase, BRANCHES } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { getPreviewUrl, isPDF } from '../lib/fileType'
-import { initiateDownload } from '../api/papers'
+import { initiateDownload, buildDownloadFileUrl } from '../api/papers'
 import toast from 'react-hot-toast'
 import { usePageTitle } from '../hooks/usePageTitle'
 import FlagButton from '../features/issues/FlagButton'
@@ -180,10 +180,13 @@ const PaperDetail = () => {
       setDownloadCount(prev => prev + 1)
       toast.success('Preparing download...')
 
-      if (downloadData.downloadUrl) {
+      if (downloadData.token) {
+        // Build URL client-side so it goes through the Vercel proxy
+        const downloadFileUrl = buildDownloadFileUrl(downloadData.token)
+
         const fetchWithToken = (token) => {
-          if (!token) return fetch(downloadData.downloadUrl)
-          return fetch(downloadData.downloadUrl, {
+          if (!token) return fetch(downloadFileUrl)
+          return fetch(downloadFileUrl, {
             headers: {
               Authorization: `Bearer ${token}`,
               'X-Authorization': `Bearer ${token}`,

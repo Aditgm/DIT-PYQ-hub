@@ -46,6 +46,17 @@ function resolveApiBaseUrl() {
 const API_BASE_URL = resolveApiBaseUrl();
 const ENV_API_BASE_URL = resolveEnvApiUrl();
 
+/**
+ * Build the download-file URL client-side so it routes through the Vercel
+ * rewrite proxy in production (relative "/api/…" path) instead of using
+ * the server-provided URL which may contain the server's private IP.
+ * @param {string} token - Download token returned by /api/download/initiate
+ * @returns {string} The full URL to fetch the watermarked file from
+ */
+export function buildDownloadFileUrl(token) {
+  return `${API_BASE_URL}/api/download/file/${token}`;
+}
+
 function allowEnvFallbackInBrowser() {
   if (typeof window === 'undefined') return true;
   return window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
