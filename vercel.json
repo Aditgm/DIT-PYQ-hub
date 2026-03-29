@@ -1,4 +1,10 @@
 {
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "http://168.144.24.72:3001/api/:path*"
+    }
+  ],
   "headers": [
     {
       "source": "/",
