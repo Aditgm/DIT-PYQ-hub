@@ -165,13 +165,26 @@ const PaperDetail = () => {
       toast.success('Preparing download...')
 
       if (downloadData.downloadUrl) {
+        const fileResponse = await fetch(downloadData.downloadUrl, {
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+          },
+        })
+
+        if (!fileResponse.ok) {
+          const fileError = await fileResponse.json().catch(() => ({ error: 'Download file failed' }))
+          throw new Error(fileError.error || 'Failed to download file')
+        }
+
+        const blob = await fileResponse.blob()
+        const blobUrl = window.URL.createObjectURL(blob)
         const link = document.createElement('a')
-        link.href = downloadData.downloadUrl
+        link.href = blobUrl
         link.download = downloadData.filename || 'document.pdf'
-        link.target = '_blank'
         document.body.appendChild(link)
         link.click()
         document.body.removeChild(link)
+        window.URL.revokeObjectURL(blobUrl)
       }
     } catch (err) {
       console.error('Download error:', err)
