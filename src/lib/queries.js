@@ -32,12 +32,13 @@ function resolveApiBaseUrl() {
 
   const isLocalHost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
 
-  if (envUrl) {
-    return envUrl
-  }
-
+  // In production/staging, always use same-origin /api so Vercel proxy handles routing.
   if (!isLocalHost) {
     return ''
+  }
+
+  if (envUrl) {
+    return envUrl
   }
 
   return `${window.location.protocol}//${window.location.hostname}:3001`
@@ -47,10 +48,15 @@ const API_BASE_URL = resolveApiBaseUrl()
 const ENV_API_BASE_URL = resolveEnvApiUrl()
 let downloadCountsApiUnavailable = false
 
+function allowEnvFallbackInBrowser() {
+  if (typeof window === 'undefined') return true
+  return window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+}
+
 function getApiBaseCandidates() {
   const candidates = [API_BASE_URL]
 
-  if (!candidates.includes(ENV_API_BASE_URL) && ENV_API_BASE_URL) {
+  if (allowEnvFallbackInBrowser() && !candidates.includes(ENV_API_BASE_URL) && ENV_API_BASE_URL) {
     candidates.push(ENV_API_BASE_URL)
   }
 

@@ -31,13 +31,13 @@ function resolveApiBaseUrl() {
 
   const isLocalHost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 
-  if (envUrl) {
-    return envUrl;
+  // In production/staging, always use same-origin /api so Vercel proxy handles routing.
+  if (!isLocalHost) {
+    return '';
   }
 
-  if (!isLocalHost) {
-    // Production fallback: rely on same-origin /api rewrite/proxy if configured.
-    return '';
+  if (envUrl) {
+    return envUrl;
   }
 
   return `${window.location.protocol}//${window.location.hostname}:3001`;
@@ -46,11 +46,16 @@ function resolveApiBaseUrl() {
 const API_BASE_URL = resolveApiBaseUrl();
 const ENV_API_BASE_URL = resolveEnvApiUrl();
 
+function allowEnvFallbackInBrowser() {
+  if (typeof window === 'undefined') return true;
+  return window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+}
+
 function getApiBaseCandidates() {
   const candidates = [API_BASE_URL];
 
-  // If same-origin /api fails (404), retry explicit env host when available.
-  if (!candidates.includes(ENV_API_BASE_URL) && ENV_API_BASE_URL) {
+  // Keep direct env host fallback for local development only.
+  if (allowEnvFallbackInBrowser() && !candidates.includes(ENV_API_BASE_URL) && ENV_API_BASE_URL) {
     candidates.push(ENV_API_BASE_URL);
   }
 
@@ -153,7 +158,7 @@ export async function initiateDownload(paperId, authToken) {
     });
   } catch (err) {
     throw new Error(
-      `Download service is unreachable. Start the server (cd server && npm start) or set VITE_API_URL.`
+      `Download service is unreachable. For local dev, start the server (cd server && npm start). For production, verify /api/download proxy and API_SERVER_URL.`
     );
   }
 
@@ -161,7 +166,7 @@ export async function initiateDownload(paperId, authToken) {
   
   if (!response.ok) {
     const errorMessage = response.status === 404
-      ? 'Download API endpoint not found. Configure VITE_API_URL or deployment /api rewrite.'
+      ? 'Download API endpoint not found. Verify /api/download proxy deployment and API_SERVER_URL.'
       : (responseData?.error || 'Failed to initiate download');
     const error = new Error(errorMessage);
     error.status = response.status;
