@@ -228,7 +228,17 @@ router.post('/initiate', validateBody(paperIdBodySchema), async (req, res) => {
     const authToken = getBearerToken(req);
     const { paperId } = req.body;
 
+    // Debug logging
+    console.log('[download/initiate] Request received', {
+      hasAuthToken: !!authToken,
+      authTokenPrefix: authToken ? authToken.substring(0, 20) + '...' : null,
+      hasPaperId: !!paperId,
+      paperId: paperId,
+      headers: Object.keys(req.headers)
+    });
+
     if (!authToken) {
+      console.warn('[download/initiate] No auth token in request');
       return res.status(401).json({ error: 'Missing or invalid Authorization header. Bearer token required.' });
     }
 
@@ -238,6 +248,10 @@ router.post('/initiate', validateBody(paperIdBodySchema), async (req, res) => {
 
     const { data: authData, error: authError } = await supabase.auth.getUser(authToken);
     if (authError || !authData?.user) {
+      console.warn('[download/initiate] Auth validation failed', { 
+        error: authError,
+        hasUser: !!authData?.user 
+      });
       return res.status(401).json({ error: 'Invalid or expired authentication token' });
     }
 

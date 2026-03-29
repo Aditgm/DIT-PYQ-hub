@@ -35,6 +35,12 @@ function toForwardHeaders(req) {
     if (HOP_BY_HOP_HEADERS.has(lower)) continue;
     if (value === undefined) continue;
 
+    // Explicitly preserve Authorization header for authentication
+    if (lower === 'authorization') {
+      headers.set(key, String(value));
+      continue;
+    }
+
     if (Array.isArray(value)) {
       headers.set(key, value.join(', '));
     } else {
@@ -74,6 +80,15 @@ export default async function handler(req, res) {
   }
 
   const targetUrl = buildTargetUrl(req, apiServerBase);
+  
+  // Debug: Log request details (remove in production)
+  console.log('[download-proxy] Request:', {
+    method: req.method,
+    path: req.url,
+    hasAuth: !!req.headers.authorization,
+    authHeader: req.headers.authorization ? req.headers.authorization.substring(0, 20) + '...' : null,
+    targetUrl
+  });
 
   try {
     const upstreamResponse = await fetch(targetUrl, {
@@ -82,12 +97,18 @@ export default async function handler(req, res) {
       body: toRequestBody(req),
     });
 
+    console.log('[download-proxy] Response:', {
+      status: upstreamResponse.status,
+      statusText: upstreamResponse.statusText
+    });
+
     res.statusCode = upstreamResponse.status;
     copyResponseHeaders(upstreamResponse.headers, res);
 
     const responseBuffer = Buffer.from(await upstreamResponse.arrayBuffer());
     res.end(responseBuffer);
   } catch (error) {
+    console.error('[download-proxy] Error:', error);
     res.status(502).json({
       error: 'Failed to reach download backend',
       detail: error instanceof Error ? error.message : 'Unknown proxy error',
