@@ -3,6 +3,9 @@
 @tailwind utilities;
 
 /* Theme CSS Custom Properties - Dark (default) */
+  .mobile-bottom-nav {
+    box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.28);
+  }
 :root {
   --color-base: #070e1a;
   --color-primary: #6dddff;
@@ -99,6 +102,15 @@
   :root {
     --mobile-bottom-nav-height: 0px;
   }
+}
+.light .mobile-bottom-nav {
+  background: rgba(255, 255, 255, 0.97);
+  border-color: rgba(0, 0, 0, 0.1);
+  box-shadow: 0 -8px 20px rgba(0, 0, 0, 0.08);
+}
+
+.light .mobile-tab-active {
+  background: rgb(from var(--color-primary) r g b / 0.12);
 }
 
 /* Light theme glass-morphism */
@@ -332,7 +344,7 @@ html.theme-transitioning *::after {
   html {
     scroll-behavior: smooth;
   }
-  
+
   body {
     @apply bg-base text-on-surface font-body antialiased;
     background-image: 
@@ -367,6 +379,14 @@ html.theme-transitioning *::after {
 @layer components {
   .app-shell {
     padding-bottom: calc(var(--mobile-bottom-nav-height, 64px) + var(--pwa-bottom-offset, 0px));
+  }
+
+  .mobile-bottom-nav {
+    box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.28);
+  }
+
+  .mobile-tab-active {
+    background: rgb(from var(--color-primary) r g b / 0.14);
   }
 
   .glass {

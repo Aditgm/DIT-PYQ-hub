@@ -27,19 +27,19 @@ const BottomNav = () => {
 
   return (
     <nav
-      className="md:hidden fixed bottom-0 left-0 right-0 z-50 glass border-t border-[color:var(--color-outline-variant)] pb-[env(safe-area-inset-bottom,0px)]"
+      className="mobile-bottom-nav md:hidden fixed bottom-0 left-0 right-0 z-50 bg-surface-container/95 supports-[backdrop-filter]:bg-surface-container/85 backdrop-blur-xl border-t border-[color:var(--color-outline-variant)] pb-[env(safe-area-inset-bottom,0px)]"
       aria-label="Main navigation"
     >
-      <div className="flex items-stretch justify-around">
+      <div className="flex items-stretch justify-around px-1 py-1">
         {tabs.map(({ to, icon: Icon, label }) => (
           <NavLink
             key={to}
             to={to}
             end={to === '/'}
             className={({ isActive }) =>
-              `flex flex-col items-center justify-center gap-1 py-3 px-4 min-w-[64px] min-h-[48px] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-lg ${
+              `flex flex-col items-center justify-center gap-1 py-3 px-4 min-w-[64px] min-h-[48px] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-xl ${
                 isActive
-                  ? 'text-primary'
+                  ? 'mobile-tab-active text-primary'
                   : 'text-on-surface-variant hover:text-on-surface'
               }`
             }
