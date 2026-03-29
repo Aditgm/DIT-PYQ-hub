@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { ChevronLeft, ChevronRight, Download, ExternalLink, Loader2, Minus, Plus } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Download, ExternalLink, Loader2, Minus, Plus, Maximize2, Minimize2, StretchHorizontal } from 'lucide-react'
 import * as pdfjsLib from 'pdfjs-dist'
 import pdfWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url'
 
@@ -40,11 +40,64 @@ const PdfJsViewer = ({ fileUrl, title = 'PDF Preview', className = '', onDownloa
   const [loadingPage, setLoadingPage] = useState(false)
   const [error, setError] = useState(null)
   const [source, setSource] = useState(null)
+  const [containerWidth, setContainerWidth] = useState(0)
 
   const canvasRef = useRef(null)
   const containerRef = useRef(null)
   const loadingTaskRef = useRef(null)
   const renderTaskRef = useRef(null)
+
+  // Zoom configuration - safe defaults
+  const ZOOM_MIN = 0.5    // 50% - prevents tiny rendering
+  const ZOOM_DEFAULT = 1  // 100% - natural size, but may cause issues on large docs
+  const ZOOM_MAX = 3      // 300% - max zoom allowed
+  const ZOOM_STEP = 0.25  // 25% increments
+
+  // Fit modes
+  const [fitMode, setFitMode] = useState('width') // 'width', 'page', 'custom'
+
+  // Calculate fit-to-width zoom based on container
+  const calculateFitZoom = useCallback((pageWidth) => {
+    if (!containerWidth || !pageWidth) return ZOOM_DEFAULT
+    const padding = 32 // 16px padding on each side
+    const availableWidth = containerWidth - padding
+    return Math.min(availableWidth / pageWidth, ZOOM_MAX)
+  }, [containerWidth])
+
+  // Handle container resize
+  useEffect(() => {
+    const container = containerRef.current
+    if (!container) return
+
+    const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        setContainerWidth(entry.contentRect.width)
+      }
+    })
+    observer.observe(container)
+    return () => observer.disconnect()
+  }, [])
+
+  // Auto-fit on container resize (not on every page change to avoid jank)
+  useEffect(() => {
+    // Only auto-fit if in fit mode and container has a valid width
+    if (fitMode === 'width' && pdfDoc && containerWidth > 0 && pageCount > 0) {
+      const adjustZoom = async () => {
+        try {
+          const page = await pdfDoc.getPage(currentPage)
+          const originalViewport = page.getViewport({ scale: 1 })
+          const newZoom = calculateFitZoom(originalViewport.width)
+          // Only update if significantly different to avoid re-render loops
+          if (Math.abs(newZoom - zoom) > 0.01) {
+            setZoom(newZoom)
+          }
+        } catch {
+          // Ignore errors from cancelled renders
+        }
+      }
+      void adjustZoom()
+    }
+  }, [containerWidth, fitMode]) // Only trigger on container resize or mode change
 
   const canGoPrev = currentPage > 1
   const canGoNext = currentPage < pageCount
@@ -102,6 +155,14 @@ const PdfJsViewer = ({ fileUrl, title = 'PDF Preview', className = '', onDownloa
       setPageCount(doc.numPages)
       setCurrentPage(1)
       setSource(sourceLabel)
+      
+      // Auto-fit to width on initial load
+      if (containerWidth && fitMode === 'width') {
+        const firstPage = await doc.getPage(1)
+        const originalViewport = firstPage.getViewport({ scale: 1 })
+        const fitZoom = calculateFitZoom(originalViewport.width)
+        setZoom(fitZoom)
+      }
     } catch (err) {
       console.error('PDF viewer load error:', err)
       setError('Could not load this PDF in-app. Please open or download the file.')
@@ -129,7 +190,24 @@ const PdfJsViewer = ({ fileUrl, title = 'PDF Preview', className = '', onDownloa
 
       try {
         const page = await pdfDoc.getPage(currentPage)
-        const viewport = page.getViewport({ scale: zoom })
+        
+        // For fit modes, calculate zoom based on container
+        let effectiveZoom = zoom
+        if (fitMode === 'width' && containerWidth) {
+          const originalViewport = page.getViewport({ scale: 1 })
+          effectiveZoom = calculateFitZoom(originalViewport.width)
+        } else if (fitMode === 'page' && containerWidth) {
+          // Fit to height (page mode)
+          const originalViewport = page.getViewport({ scale: 1 })
+          const padding = 32
+          const availableHeight = containerRef.current.clientHeight - padding
+          const availableWidth = containerWidth - padding
+          const scaleX = availableWidth / originalViewport.width
+          const scaleY = availableHeight / originalViewport.height
+          effectiveZoom = Math.min(scaleX, scaleY, ZOOM_MAX)
+        }
+        
+        const viewport = page.getViewport({ scale: effectiveZoom })
         const outputScale = window.devicePixelRatio || 1
 
         const canvas = canvasRef.current
@@ -169,7 +247,7 @@ const PdfJsViewer = ({ fileUrl, title = 'PDF Preview', className = '', onDownloa
     return () => {
       renderTaskRef.current?.cancel()
     }
-  }, [pdfDoc, currentPage, zoom])
+  }, [pdfDoc, currentPage, zoom, containerWidth, fitMode, calculateFitZoom])
 
   return (
     <div className={`pdfjs-viewer ${className}`} role="group" aria-label={`${title} viewer`}>
@@ -199,9 +277,32 @@ const PdfJsViewer = ({ fileUrl, title = 'PDF Preview', className = '', onDownloa
         <div className="pdfjs-controls" aria-label="Zoom controls">
           <button
             type="button"
-            className="pdfjs-btn"
-            onClick={() => setZoom(prev => Math.max(0.75, Number((prev - 0.1).toFixed(2))))}
+            className={`pdfjs-btn ${fitMode === 'width' ? 'pdfjs-btn-active' : ''}`}
+            onClick={() => setFitMode('width')}
             disabled={loadingDoc}
+            aria-label="Fit to width"
+            title="Fit to width"
+          >
+            <StretchHorizontal className="w-4 h-4" />
+          </button>
+          <button
+            type="button"
+            className={`pdfjs-btn ${fitMode === 'page' ? 'pdfjs-btn-active' : ''}`}
+            onClick={() => setFitMode('page')}
+            disabled={loadingDoc}
+            aria-label="Fit to page"
+            title="Fit to page"
+          >
+            <Maximize2 className="w-4 h-4" />
+          </button>
+          <button
+            type="button"
+            className="pdfjs-btn"
+            onClick={() => {
+              setFitMode('custom')
+              setZoom(prev => Math.max(ZOOM_MIN, Number((prev - ZOOM_STEP).toFixed(2))))
+            }}
+            disabled={loadingDoc || zoom <= ZOOM_MIN}
             aria-label="Zoom out"
           >
             <Minus className="w-4 h-4" />
@@ -210,8 +311,11 @@ const PdfJsViewer = ({ fileUrl, title = 'PDF Preview', className = '', onDownloa
           <button
             type="button"
             className="pdfjs-btn"
-            onClick={() => setZoom(prev => Math.min(2.5, Number((prev + 0.1).toFixed(2))))}
-            disabled={loadingDoc}
+            onClick={() => {
+              setFitMode('custom')
+              setZoom(prev => Math.min(ZOOM_MAX, Number((prev + ZOOM_STEP).toFixed(2))))
+            }}
+            disabled={loadingDoc || zoom >= ZOOM_MAX}
             aria-label="Zoom in"
           >
             <Plus className="w-4 h-4" />

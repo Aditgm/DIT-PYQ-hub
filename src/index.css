@@ -892,13 +892,24 @@ html.theme-transitioning *::after {
   align-items: flex-start;
   justify-content: center;
   padding: 16px;
+  min-height: 200px;
 }
 
 .pdfjs-canvas {
-  max-width: 100%;
+  /* Remove max-width restriction - allows canvas to be as wide as needed */
+  max-width: none;
+  width: auto;
+  height: auto;
   background: #fff;
   border-radius: 8px;
   box-shadow: 0 8px 28px rgba(0, 0, 0, 0.28);
+  /* Prevent clipping at 100%+ zoom */
+  transform-origin: top center;
+}
+
+.pdfjs-btn-active {
+  background: var(--color-primary);
+  color: white;
 }
 
 .pdfjs-overlay,
