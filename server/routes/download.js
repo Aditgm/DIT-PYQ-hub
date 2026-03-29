@@ -157,9 +157,28 @@ async function addDocxFooterWatermark(docxBuffer, watermarkText) {
 }
 
 function getBearerToken(req) {
-  const header = req.headers.authorization || '';
-  if (!header.toLowerCase().startsWith('bearer ')) return null;
-  return header.slice(7).trim() || null;
+  const authHeader = req.headers.authorization;
+  const xAuthHeader = req.headers['x-authorization'];
+  const xAuthToken = req.headers['x-auth-token'];
+
+  const candidates = [authHeader, xAuthHeader, xAuthToken]
+    .flat()
+    .filter(Boolean)
+    .map((value) => String(value));
+
+  for (const header of candidates) {
+    if (header.toLowerCase().startsWith('bearer ')) {
+      const token = header.slice(7).trim();
+      if (token) return token;
+    }
+
+    // Support plain token in x-auth-token for proxy compatibility.
+    if (!header.includes(' ') && header.trim()) {
+      return header.trim();
+    }
+  }
+
+  return null;
 }
 
 const RATE_LIMIT_WINDOW_MS = 3 * 60 * 60 * 1000; // 3 hours
@@ -234,6 +253,7 @@ router.post('/initiate', validateBody(paperIdBodySchema), async (req, res) => {
       authTokenPrefix: authToken ? authToken.substring(0, 20) + '...' : null,
       hasPaperId: !!paperId,
       paperId: paperId,
+      body: req.body,
       headers: Object.keys(req.headers)
     });
 

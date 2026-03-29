@@ -48,6 +48,22 @@ function toForwardHeaders(req) {
     }
   }
 
+  const hasAuthorization = headers.has('authorization');
+  if (!hasAuthorization) {
+    const xAuthorization = req.headers?.['x-authorization'];
+    const xAuthToken = req.headers?.['x-auth-token'];
+
+    if (xAuthorization) {
+      headers.set('authorization', String(Array.isArray(xAuthorization) ? xAuthorization[0] : xAuthorization));
+    } else if (xAuthToken) {
+      const rawToken = String(Array.isArray(xAuthToken) ? xAuthToken[0] : xAuthToken).trim();
+      if (rawToken) {
+        const value = rawToken.toLowerCase().startsWith('bearer ') ? rawToken : `Bearer ${rawToken}`;
+        headers.set('authorization', value);
+      }
+    }
+  }
+
   return headers;
 }
 

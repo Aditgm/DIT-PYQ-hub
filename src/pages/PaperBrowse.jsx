@@ -321,6 +321,7 @@ const PaperBrowse = () => {
           return fetch(downloadData.downloadUrl, {
             headers: {
               Authorization: `Bearer ${token}`,
+              'X-Authorization': `Bearer ${token}`,
             },
           })
         }

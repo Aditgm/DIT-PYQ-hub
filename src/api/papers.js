@@ -153,6 +153,7 @@ export async function initiateDownload(paperId, authToken) {
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${authToken}`,
+        'X-Authorization': `Bearer ${authToken}`,
       },
       body: JSON.stringify({ paperId }),
     });
@@ -209,6 +210,7 @@ export async function revokeDownloadToken(token, authToken) {
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${authToken}`,
+      'X-Authorization': `Bearer ${authToken}`,
     },
     body: JSON.stringify({ token }),
   });
