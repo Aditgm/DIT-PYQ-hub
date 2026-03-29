@@ -40,7 +40,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "http://168.144.24.72:3001/api/:path*"
+      "destination": "${API_SERVER_URL}/api/:path*"
     }
   ]
 }
