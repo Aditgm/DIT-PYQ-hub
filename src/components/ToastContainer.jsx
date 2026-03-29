@@ -8,7 +8,7 @@ const ToastContainer = ({
   maxToasts = 5,
   className = ''
 }) => {
-  const { toasts, removeToast } = useToast()
+  const { toasts } = useToast()
   const [isRendered, setIsRendered] = useState(false)
   const focusRef = useRef(null)
   
@@ -37,6 +37,8 @@ const ToastContainer = ({
       className={`toast-container ${positionClass} ${className}`}
       role="region"
       aria-label="Notifications"
+      aria-live="polite"
+      aria-atomic="false"
     >
       {position === 'top' && (
         <AnimatePresence mode="popLayout">

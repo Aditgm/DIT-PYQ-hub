@@ -108,3 +108,41 @@ registerRoute(
     ],
   })
 )
+
+// pdf.js worker and runtime chunks — cache-first for faster viewer boot
+registerRoute(
+  ({ request, url }) => (
+    request.method === 'GET'
+    && request.destination === 'script'
+    && (
+      /pdf\.worker(\.min)?\.(mjs|js)$/i.test(url.pathname)
+      || /pdfjs/i.test(url.pathname)
+    )
+  ),
+  new CacheFirst({
+    cacheName: 'pdfjs-runtime',
+    plugins: [
+      new ExpirationPlugin({ maxEntries: 20, maxAgeSeconds: 7 * 24 * 60 * 60 }),
+      new CacheableResponsePlugin({ statuses: [0, 200] }),
+    ],
+  })
+)
+
+// PDF files — network-first online, cache fallback offline
+registerRoute(
+  ({ request, url }) => (
+    request.method === 'GET'
+    && (
+      /\.pdf($|\?)/i.test(url.href)
+      || /\/api\/download\/file\//i.test(url.pathname)
+    )
+  ),
+  new NetworkFirst({
+    cacheName: 'pdf-documents',
+    plugins: [
+      new ExpirationPlugin({ maxEntries: 80, maxAgeSeconds: 14 * 24 * 60 * 60 }),
+      new CacheableResponsePlugin({ statuses: [0, 200] }),
+    ],
+    networkTimeoutSeconds: 6,
+  })
+)

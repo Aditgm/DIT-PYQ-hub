@@ -44,9 +44,10 @@ const UpdateBanner = ({ visible, isUpdating, onReload, onRemindLater, onDismiss,
   return (
     <div
       ref={bannerRef}
-      role="alert"
+      role="status"
       aria-label={strings.aria.updateBanner}
       aria-live="polite"
+      aria-atomic="true"
       className="pwa-update-banner"
       style={{
         position: 'fixed',
@@ -58,8 +59,11 @@ const UpdateBanner = ({ visible, isUpdating, onReload, onRemindLater, onDismiss,
         borderBottom: '1px solid var(--pwa-update-border, #334155)',
         padding: 'calc(env(safe-area-inset-top, 0px) + 12px) 16px 12px',
         display: 'flex',
-        alignItems: 'flex-start',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        flexWrap: 'wrap',
         gap: '12px',
+        writingMode: 'horizontal-tb',
         animation: 'pwa-slide-down 200ms ease-out',
         boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
       }}
@@ -111,13 +115,14 @@ const UpdateBanner = ({ visible, isUpdating, onReload, onRemindLater, onDismiss,
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
 
       {/* Text */}
-      <div style={{ flex: 1, minWidth: 0, paddingTop: '2px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1, minWidth: 0 }}>
         <p style={{
           margin: 0,
           color: 'var(--pwa-update-text, #f1f5f9)',
           fontSize: '14px',
           fontWeight: 600,
           fontFamily: 'inherit',
+          overflowWrap: 'anywhere',
         }}>
           {isUpdating ? strings.update.updating : strings.update.title}
         </p>
@@ -126,6 +131,7 @@ const UpdateBanner = ({ visible, isUpdating, onReload, onRemindLater, onDismiss,
           color: 'var(--pwa-update-dismiss, #64748b)',
           fontSize: '13px',
           fontFamily: 'inherit',
+          overflowWrap: 'anywhere',
         }}>
           {strings.update.message}
         </p>

@@ -6,12 +6,13 @@ import {
 } from 'lucide-react'
 import { supabase, BRANCHES } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
-import { getPreviewUrl } from '../lib/fileType'
+import { getPreviewUrl, isPDF } from '../lib/fileType'
 import { initiateDownload } from '../api/papers'
 import toast from 'react-hot-toast'
 import { usePageTitle } from '../hooks/usePageTitle'
 import FlagButton from '../features/issues/FlagButton'
 import ShareButton from '../components/ShareButton'
+import PdfJsViewer from '../components/PdfJsViewer'
 
 const PaperDetail = () => {
   const { id } = useParams()
@@ -23,8 +24,29 @@ const PaperDetail = () => {
   const [downloading, setDownloading] = useState(false)
   const [copied, setCopied] = useState(false)
   const [citationCopied, setCitationCopied] = useState(false)
+  const [isStandaloneMobile, setIsStandaloneMobile] = useState(false)
+  const [forcePdfJsFallback, setForcePdfJsFallback] = useState(false)
 
   usePageTitle(paper?.title || 'Paper Details', paper ? `View details, download, and cite: ${paper.title}` : 'View paper details and download options.')
+
+  useEffect(() => {
+    const detectStandaloneMobile = () => {
+      const isSmallScreen = window.matchMedia('(max-width: 767px)').matches
+      const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true
+      setIsStandaloneMobile(Boolean(isSmallScreen && isStandalone))
+    }
+
+    detectStandaloneMobile()
+    window.addEventListener('resize', detectStandaloneMobile)
+
+    return () => {
+      window.removeEventListener('resize', detectStandaloneMobile)
+    }
+  }, [])
+
+  useEffect(() => {
+    setForcePdfJsFallback(false)
+  }, [paper?.id])
 
   useEffect(() => {
     const fetchPaper = async () => {
@@ -200,6 +222,10 @@ const PaperDetail = () => {
     ? `${paper.profiles?.full_name || 'Anonymous'}. "${paper.title}." ${branch?.label || paper.branch}, ${paper.year}. DIT PYQ Hub.`
     : ''
 
+  const activePreviewUrl = getPreviewUrl(paper)
+  const isPdfFile = isPDF(paper)
+  const shouldUsePdfJsViewer = Boolean(isPdfFile && (isStandaloneMobile || forcePdfJsFallback))
+
   if (loading) {
     return (
       <div className="min-h-screen bg-surface flex items-center justify-center">
@@ -238,11 +264,25 @@ const PaperDetail = () => {
             <div className="glass rounded-2xl overflow-hidden border border-white/5">
               <div className="aspect-[3/4] bg-surface-container relative">
                 {paper.file_url ? (
-                  <iframe
-                    src={getPreviewUrl(paper)}
-                    className="w-full h-full"
-                    title="Document Preview"
-                  />
+                  shouldUsePdfJsViewer ? (
+                    <PdfJsViewer
+                      fileUrl={paper.file_url}
+                      title={paper.title}
+                      className="h-full"
+                      onDownload={handleDownload}
+                    />
+                  ) : (
+                    <iframe
+                      src={activePreviewUrl}
+                      className="w-full h-full"
+                      title="Document Preview"
+                      onError={() => {
+                        if (isPdfFile) {
+                          setForcePdfJsFallback(true)
+                        }
+                      }}
+                    />
+                  )
                 ) : (
                   <div className="absolute inset-0 flex items-center justify-center">
                     <FileText className="w-16 h-16 text-on-surface-variant opacity-50" />

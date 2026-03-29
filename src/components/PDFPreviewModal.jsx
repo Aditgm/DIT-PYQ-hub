@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { X, FileText, Loader2, AlertCircle, Download, ExternalLink } from 'lucide-react'
 import { getPreviewUrl, isPDF } from '../lib/fileType'
+import PdfJsViewer from './PdfJsViewer'
 
 const PDFPreviewModal = ({ 
   isOpen, 
@@ -11,12 +12,14 @@ const PDFPreviewModal = ({
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
   const [isStandaloneMobile, setIsStandaloneMobile] = useState(false)
+  const [forcePdfJsFallback, setForcePdfJsFallback] = useState(false)
 
   // Reset state when paper changes
   useEffect(() => {
     if (isOpen && paper) {
       setIsLoading(true)
       setError(null)
+      setForcePdfJsFallback(false)
     }
   }, [isOpen, paper])
 
@@ -44,7 +47,7 @@ const PDFPreviewModal = ({
   useEffect(() => {
     const activeFileUrl = paper?.file_url || paper?.fileUrl
     if (!isOpen || !activeFileUrl) return
-    if (isStandaloneMobile && isPDF(paper)) {
+    if (isPDF(paper) && (isStandaloneMobile || forcePdfJsFallback)) {
       setIsLoading(false)
       return
     }
@@ -52,12 +55,17 @@ const PDFPreviewModal = ({
     const timer = setTimeout(() => {
       if (isLoading) {
         setIsLoading(false)
+        if (isPDF(paper)) {
+          setForcePdfJsFallback(true)
+          setError(null)
+          return
+        }
         setError('Inline preview is not available on this device. Use open/download below.')
       }
     }, 10000)
 
     return () => clearTimeout(timer)
-  }, [isOpen, paper, isLoading, isStandaloneMobile])
+  }, [isOpen, paper, isLoading, isStandaloneMobile, forcePdfJsFallback])
 
   // Handle escape key
   useEffect(() => {
@@ -91,8 +99,9 @@ const PDFPreviewModal = ({
   // DOCX: wrapped in Microsoft Office Online viewer
   const previewUrl = getPreviewUrl(paper)
   const fileUrl = paper?.file_url || paper?.fileUrl
-  const showStandaloneFallback = Boolean(isStandaloneMobile && isPDF(paper))
-  const canRenderIframe = Boolean(previewUrl) && !showStandaloneFallback
+  const isPdfFile = isPDF(paper)
+  const showPdfJsViewer = Boolean(isPdfFile && (isStandaloneMobile || forcePdfJsFallback))
+  const canRenderIframe = Boolean(previewUrl) && !showPdfJsViewer
 
   return (
     <div 
@@ -159,36 +168,13 @@ const PDFPreviewModal = ({
           )}
 
           {/* Mobile PWA fallback for PDF */}
-          {showStandaloneFallback && !error && (
-            <div className="absolute inset-0 flex items-center justify-center bg-surface-container z-10">
-              <div className="text-center max-w-md px-4">
-                <FileText className="w-12 h-12 text-on-surface-variant mx-auto mb-3 opacity-60" />
-                <p className="text-on-surface mb-2">Preview is limited in installed app mode</p>
-                <p className="text-sm text-on-surface-variant mb-4">
-                  Open this PDF in browser or download it to view smoothly on mobile.
-                </p>
-                <div className="flex flex-col sm:flex-row items-center justify-center gap-2">
-                  {fileUrl && (
-                    <a
-                      href={fileUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-white/10 text-on-surface hover:bg-surface-container-high transition-colors"
-                    >
-                      Open in browser
-                      <ExternalLink className="w-4 h-4" />
-                    </a>
-                  )}
-                  <button
-                    onClick={() => onDownload(paper)}
-                    className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-white font-medium text-sm hover:bg-primary/90 transition-colors"
-                  >
-                    <Download className="w-4 h-4" />
-                    Download file
-                  </button>
-                </div>
-              </div>
-            </div>
+          {showPdfJsViewer && fileUrl && (
+            <PdfJsViewer
+              fileUrl={fileUrl}
+              title={paper.title}
+              className="h-full"
+              onDownload={() => onDownload(paper)}
+            />
           )}
           
           {/* Error State */}
@@ -220,13 +206,18 @@ const PDFPreviewModal = ({
               onLoad={handleIframeLoad}
               onError={() => {
                 setIsLoading(false)
+                if (isPdfFile) {
+                  setForcePdfJsFallback(true)
+                  setError(null)
+                  return
+                }
                 setError('Unable to load preview on this device.')
               }}
             />
           )}
           
           {/* Fallback for no URL */}
-          {!previewUrl && !error && !showStandaloneFallback && (
+          {!previewUrl && !error && !showPdfJsViewer && (
             <div className="absolute inset-0 flex items-center justify-center bg-surface-container">
               <div className="text-center px-4">
                 <FileText className="w-16 h-16 text-on-surface-variant mx-auto mb-3 opacity-50" />
