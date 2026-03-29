@@ -29,3 +29,17 @@ npm-debug.log*
 .cache/
 
 .kilo/
+
+# Local planning docs
+CHANGELOG.md
+VERIFICATION_PLAN.md
+VERCEL_IP_REMOVAL_GUIDE.md
+
+# Local validation/testing artifacts
+server/tests/
+src/__tests__/
+**/*.test.js
+**/*.spec.js
+
+# Local scratch files
+tmp_*.html

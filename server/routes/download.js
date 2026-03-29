@@ -4,6 +4,15 @@ import { createClient } from '@supabase/supabase-js';
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
 import JSZip from 'jszip';
 import { buildWatermarkText, validateCloudinaryConfig } from '../services/cloudinary.js';
+import { 
+  validateBody, 
+  validateQuery,
+  validateParams,
+  paperIdBodySchema,
+  revokeTokenSchema,
+  downloadCountsSchema,
+  tokenParamSchema 
+} from '../middleware/validation.js';
 
 const router = express.Router();
 
@@ -213,7 +222,7 @@ function recordDownload(userId) {
   downloadRateLimitMap.set(key, userData);
 }
 
-router.post('/initiate', async (req, res) => {
+router.post('/initiate', validateBody(paperIdBodySchema), async (req, res) => {
   try {
     const supabase = req.app.get('supabase');
     const authToken = getBearerToken(req);
@@ -416,7 +425,7 @@ router.get('/file/:token', async (req, res) => {
   }
 });
 
-router.get('/verify/:token', async (req, res) => {
+router.get('/verify/:token', validateParams(tokenParamSchema), async (req, res) => {
   try {
     const supabase = req.app.get('supabase');
     const { token } = req.params;
@@ -455,7 +464,7 @@ router.get('/verify/:token', async (req, res) => {
   }
 });
 
-router.post('/revoke', async (req, res) => {
+router.post('/revoke', validateBody(revokeTokenSchema), async (req, res) => {
   try {
     const supabase = req.app.get('supabase');
     const authToken = getBearerToken(req);
@@ -493,7 +502,7 @@ router.post('/revoke', async (req, res) => {
   }
 });
 
-router.post('/counts', async (req, res) => {
+router.post('/counts', validateBody(downloadCountsSchema), async (req, res) => {
   try {
     const supabase = req.app.get('supabase');
     const { paperIds } = req.body || {};
