@@ -95,8 +95,9 @@ export async function initiateDownload(paperId, authToken) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`,
       },
-      body: JSON.stringify({ paperId, authToken }),
+      body: JSON.stringify({ paperId }),
     });
   } catch (err) {
     throw new Error(
@@ -104,12 +105,20 @@ export async function initiateDownload(paperId, authToken) {
     );
   }
 
+  const responseData = await response.json().catch(() => null);
+  
   if (!response.ok) {
-    const error = await response.json().catch(() => ({ error: 'Download failed' }));
-    throw new Error(error.error || 'Failed to initiate download');
+    const error = new Error(responseData?.error || 'Failed to initiate download');
+    error.status = response.status;
+    error.nextAvailableTime = responseData?.nextAvailableTime;
+    throw error;
   }
 
-  return response.json();
+  if (!responseData) {
+    throw new Error('Invalid response from download service');
+  }
+
+  return responseData;
 }
 
 /**
@@ -139,8 +148,9 @@ export async function revokeDownloadToken(token, authToken) {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      'Authorization': `Bearer ${authToken}`,
     },
-    body: JSON.stringify({ token, authToken }),
+    body: JSON.stringify({ token }),
   });
 
   if (!response.ok) {

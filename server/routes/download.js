@@ -153,25 +153,94 @@ function getBearerToken(req) {
   return header.slice(7).trim() || null;
 }
 
+const RATE_LIMIT_WINDOW_MS = 3 * 60 * 60 * 1000; // 3 hours
+const RATE_LIMIT_MAX_DOWNLOADS = 5;
+
+const downloadRateLimitMap = new Map();
+
+export function resetDownloadRateLimitForTests() {
+  downloadRateLimitMap.clear();
+}
+
+function cleanupExpiredEntries() {
+  const now = Date.now();
+  for (const [key, data] of downloadRateLimitMap.entries()) {
+    if (data.windowStart < now - RATE_LIMIT_WINDOW_MS) {
+      downloadRateLimitMap.delete(key);
+    }
+  }
+}
+
+function checkRateLimit(userId) {
+  const now = Date.now();
+  const key = userId;
+  
+  let userData = downloadRateLimitMap.get(key);
+  
+  if (!userData || userData.windowStart < now - RATE_LIMIT_WINDOW_MS) {
+    userData = {
+      windowStart: now,
+      count: 0
+    };
+    downloadRateLimitMap.set(key, userData);
+  }
+  
+  cleanupExpiredEntries();
+  
+  if (userData.count >= RATE_LIMIT_MAX_DOWNLOADS) {
+    const nextAvailableTime = new Date(userData.windowStart + RATE_LIMIT_WINDOW_MS).toISOString();
+    return { allowed: false, nextAvailableTime };
+  }
+  
+  return { allowed: true };
+}
+
+function recordDownload(userId) {
+  const now = Date.now();
+  const key = userId;
+  
+  let userData = downloadRateLimitMap.get(key);
+  
+  if (!userData || userData.windowStart < now - RATE_LIMIT_WINDOW_MS) {
+    userData = {
+      windowStart: now,
+      count: 1
+    };
+  } else {
+    userData.count += 1;
+  }
+  
+  downloadRateLimitMap.set(key, userData);
+}
+
 router.post('/initiate', async (req, res) => {
   try {
     const supabase = req.app.get('supabase');
-    const { paperId, authToken } = req.body;
+    const authToken = getBearerToken(req);
+    const { paperId } = req.body;
+
+    if (!authToken) {
+      return res.status(401).json({ error: 'Missing or invalid Authorization header. Bearer token required.' });
+    }
 
     if (!paperId) {
       return res.status(400).json({ error: 'Missing paperId' });
     }
 
-    let user = null;
-    if (authToken) {
-      const { data, error: authError } = await supabase.auth.getUser(authToken);
-      if (!authError && data?.user) {
-        user = data.user;
-      }
+    const { data: authData, error: authError } = await supabase.auth.getUser(authToken);
+    if (authError || !authData?.user) {
+      return res.status(401).json({ error: 'Invalid or expired authentication token' });
     }
 
-    if (!user || !authToken) {
-      return res.status(401).json({ error: 'Invalid authentication' });
+    const user = authData.user;
+
+    const rateLimitCheck = checkRateLimit(user.id);
+    if (!rateLimitCheck.allowed) {
+      return res.status(429).json({
+        error: 'Rate limit exceeded. Download credits exhausted.',
+        nextAvailableTime: rateLimitCheck.nextAvailableTime,
+        retryAfter: Math.ceil((new Date(rateLimitCheck.nextAvailableTime).getTime() - Date.now()) / 1000)
+      });
     }
 
     const { data: paper, error: paperError } = await supabase
@@ -194,7 +263,6 @@ router.post('/initiate', async (req, res) => {
 
     let expiresAt = new Date(Date.now() + 60 * 60 * 1000).toISOString();
 
-    // Use a user-scoped client so RLS policies evaluate auth.uid() correctly.
     const userClient = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY, {
       auth: {
         autoRefreshToken: false,
@@ -236,6 +304,8 @@ router.post('/initiate', async (req, res) => {
       console.warn('Failed to record download:', downloadInsertError);
     }
 
+    recordDownload(user.id);
+
     const publicBaseUrl = process.env.PUBLIC_API_URL || `${req.protocol}://${req.get('host')}`;
 
     res.json({
@@ -256,7 +326,7 @@ router.get('/file/:token', async (req, res) => {
     const { token } = req.params;
 
     // Prefer user-scoped client so RLS can see auth.uid() for token owner.
-    const bearerToken = getBearerToken(req) || req.query.authToken;
+    const bearerToken = getBearerToken(req);
     const tokenClient = bearerToken
       ? createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY, {
           auth: {
@@ -388,10 +458,15 @@ router.get('/verify/:token', async (req, res) => {
 router.post('/revoke', async (req, res) => {
   try {
     const supabase = req.app.get('supabase');
-    const { token, authToken } = req.body;
+    const authToken = getBearerToken(req);
+    const { token } = req.body;
 
-    if (!token || !authToken) {
-      return res.status(400).json({ error: 'Missing token or authToken' });
+    if (!authToken) {
+      return res.status(401).json({ error: 'Missing or invalid Authorization header. Bearer token required.' });
+    }
+
+    if (!token) {
+      return res.status(400).json({ error: 'Missing token' });
     }
 
     const { data: { user }, error: authError } = await supabase.auth.getUser(authToken);

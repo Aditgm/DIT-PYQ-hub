@@ -43,11 +43,15 @@ export default defineConfig({
       srcDir: 'src',
       filename: 'sw.js',
       injectManifest: {
-        // Precache all build assets
         globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
-        // Don't precache files larger than 2MB
         maximumFileSizeToCacheInBytes: 2 * 1024 * 1024,
       },
     })
   ],
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    include: ['src/__tests__/**/*.test.js'],
+    setupFiles: ['./src/__tests__/setup.js']
+  }
 })

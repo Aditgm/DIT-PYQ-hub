@@ -110,6 +110,16 @@ const PaperDetail = () => {
     }
   }, [id])
 
+  const formatNextAvailableTime = (isoString) => {
+    const date = new Date(isoString);
+    return date.toLocaleString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  }
+
   const handleDownload = async () => {
     if (!user) {
       toast('Please sign in to download papers')
@@ -143,7 +153,15 @@ const PaperDetail = () => {
       }
     } catch (err) {
       console.error('Download error:', err)
-      toast.error(err.message || 'Download failed. Please try again.')
+      if (err.nextAvailableTime) {
+        const retryTime = formatNextAvailableTime(err.nextAvailableTime)
+        toast.error(
+          `Download credits exhausted. You can retry after ${retryTime}.`,
+          { duration: 5000 }
+        )
+      } else {
+        toast.error(err.message || 'Download failed. Please try again.')
+      }
     } finally {
       setDownloading(false)
     }
