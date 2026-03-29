@@ -152,28 +152,66 @@ const PaperDetail = () => {
       setDownloading(true)
 
       const { data: { session } } = await supabase.auth.getSession()
-      const authToken = session?.access_token
+      let authToken = session?.access_token
 
       if (!authToken) {
         toast.error('Authentication required. Please sign in again.')
         return
       }
 
-      const downloadData = await initiateDownload(paper.id, authToken)
+      let downloadData
+      try {
+        downloadData = await initiateDownload(paper.id, authToken)
+      } catch (initErr) {
+        if (initErr?.status === 401) {
+          const { data: { session: refreshedSession } } = await supabase.auth.refreshSession().catch(() => ({ data: { session: null } }))
+          const refreshedToken = refreshedSession?.access_token
+          if (!refreshedToken) {
+            throw initErr
+          }
+
+          authToken = refreshedToken
+          downloadData = await initiateDownload(paper.id, authToken)
+        } else {
+          throw initErr
+        }
+      }
 
       setDownloadCount(prev => prev + 1)
       toast.success('Preparing download...')
 
       if (downloadData.downloadUrl) {
-        const fileResponse = await fetch(downloadData.downloadUrl, {
-          headers: {
-            Authorization: `Bearer ${authToken}`,
-          },
-        })
+        const fetchWithToken = (token) => {
+          if (!token) return fetch(downloadData.downloadUrl)
+          return fetch(downloadData.downloadUrl, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          })
+        }
+
+        let fileResponse = await fetchWithToken(authToken)
+
+        if (fileResponse.status === 401) {
+          const { data: { session: refreshedSession } } = await supabase.auth.refreshSession().catch(() => ({ data: { session: null } }))
+          const refreshedToken = refreshedSession?.access_token
+
+          if (refreshedToken && refreshedToken !== authToken) {
+            authToken = refreshedToken
+            fileResponse = await fetchWithToken(authToken)
+          }
+
+          if (fileResponse.status === 401) {
+            // Compatibility fallback for backends that authorize purely by download token.
+            fileResponse = await fetchWithToken(null)
+          }
+        }
 
         if (!fileResponse.ok) {
           const fileError = await fileResponse.json().catch(() => ({ error: 'Download file failed' }))
-          throw new Error(fileError.error || 'Failed to download file')
+          const error = new Error(fileError.error || 'Failed to download file')
+          error.status = fileResponse.status
+          throw error
         }
 
         const blob = await fileResponse.blob()
