@@ -109,7 +109,7 @@ function App() {
         </ErrorBoundary>
       </div>
       <Footer />
-      <BottomNav />
+      {!showOnboarding && <BottomNav />}
     </div>
   )
 }

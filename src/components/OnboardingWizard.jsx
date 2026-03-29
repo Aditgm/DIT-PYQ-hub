@@ -123,7 +123,7 @@ const OnboardingWizard = ({ isOpen, onClose, user }) => {
 
   return (
     <div 
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 z-[70] flex items-center justify-center p-3 sm:p-4"
       role="dialog"
       aria-modal="true"
     >
@@ -134,7 +134,7 @@ const OnboardingWizard = ({ isOpen, onClose, user }) => {
       />
       
       {/* Modal Content */}
-      <div className="relative w-full max-w-2xl max-h-[calc(100dvh-1rem)] sm:max-h-[90vh] bg-surface-container rounded-2xl overflow-hidden shadow-2xl flex flex-col">
+      <div className="relative w-full max-w-2xl max-h-[calc(100dvh-0.75rem)] sm:max-h-[90vh] bg-surface-container rounded-2xl overflow-hidden shadow-2xl flex flex-col">
         
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 bg-surface-container-highest">
@@ -324,7 +324,7 @@ const OnboardingWizard = ({ isOpen, onClose, user }) => {
         )}
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-white/10 bg-surface-container-highest flex items-center justify-between">
+        <div className="px-4 sm:px-6 py-3 sm:py-4 border-t border-white/10 bg-surface-container-highest flex items-center justify-between pb-[calc(env(safe-area-inset-bottom,0px)+0.75rem)] sm:pb-4">
           <button
             onClick={handleBack}
             disabled={step === 1}
