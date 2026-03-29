@@ -134,7 +134,7 @@ const OnboardingWizard = ({ isOpen, onClose, user }) => {
       />
       
       {/* Modal Content */}
-      <div className="relative w-full max-w-2xl max-h-[90vh] bg-surface-container rounded-2xl overflow-hidden shadow-2xl flex flex-col">
+      <div className="relative w-full max-w-2xl max-h-[calc(100dvh-1rem)] sm:max-h-[90vh] bg-surface-container rounded-2xl overflow-hidden shadow-2xl flex flex-col">
         
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 bg-surface-container-highest">
@@ -151,7 +151,7 @@ const OnboardingWizard = ({ isOpen, onClose, user }) => {
         </div>
 
         {/* Progress Indicator */}
-        <div className="px-6 py-3 border-b border-white/5">
+        <div className="px-4 sm:px-6 py-3 border-b border-white/5">
           <div className="flex items-center justify-between mb-2">
             {[1, 2, 3].map((s) => (
               <React.Fragment key={s}>
@@ -163,14 +163,14 @@ const OnboardingWizard = ({ isOpen, onClose, user }) => {
                   }`}>
                     {step > s ? <Check className="w-4 h-4" /> : s}
                   </div>
-                  <span className={`ml-2 text-sm ${
+                  <span className={`ml-2 text-xs sm:text-sm ${
                     step >= s ? 'text-on-surface' : 'text-on-surface-variant'
                   }`}>
                     {s === 1 ? 'Branch' : s === 2 ? 'Semester' : 'Discover'}
                   </span>
                 </div>
                 {s < 3 && (
-                  <div className={`flex-1 h-0.5 mx-4 ${
+                  <div className={`flex-1 h-0.5 mx-2 sm:mx-4 ${
                     step > s ? 'bg-primary' : 'bg-white/10'
                   }`} />
                 )}
@@ -180,7 +180,7 @@ const OnboardingWizard = ({ isOpen, onClose, user }) => {
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6">
           
           {/* Step 1: Branch Selection */}
           {step === 1 && (
@@ -231,7 +231,7 @@ const OnboardingWizard = ({ isOpen, onClose, user }) => {
                 <p className="text-on-surface-variant">Which semester are you currently in?</p>
               </div>
               
-              <div className="grid grid-cols-4 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 {[1, 2, 3, 4, 5, 6, 7, 8].map((sem) => (
                   <button
                     key={sem}

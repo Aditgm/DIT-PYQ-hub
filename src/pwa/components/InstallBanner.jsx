@@ -60,15 +60,16 @@ const InstallBanner = ({ visible, platform, installing, onInstall, onDismiss, on
         aria-modal="true"
         aria-label={strings.aria.installBanner}
         tabIndex={-1}
+        className="pwa-install-banner pwa-install-ios"
         style={{
           position: 'fixed',
-          bottom: 0,
+          bottom: 'calc(var(--mobile-bottom-nav-height, 64px) + env(safe-area-inset-bottom, 0px))',
           left: 0,
           right: 0,
           zIndex: 9999,
           background: 'var(--pwa-install-bg, linear-gradient(135deg, #0f172a, #1e293b))',
           borderTop: '1px solid var(--pwa-install-border, #334155)',
-          padding: '20px 16px',
+          padding: '20px 16px 16px',
           animation: 'pwa-slide-up 200ms ease-out',
           boxShadow: '0 -4px 24px rgba(0,0,0,0.3)',
         }}
@@ -77,6 +78,43 @@ const InstallBanner = ({ visible, platform, installing, onInstall, onDismiss, on
           @keyframes pwa-slide-up {
             from { transform: translateY(100%); opacity: 0; }
             to { transform: translateY(0); opacity: 1; }
+          }
+
+          @media (max-width: 640px) {
+            .pwa-install-banner {
+              padding: 12px !important;
+            }
+
+            .pwa-install-ios {
+              padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 12px) !important;
+            }
+
+            .pwa-install-ios-steps {
+              display: grid !important;
+              grid-template-columns: 1fr;
+              gap: 10px !important;
+            }
+
+            .pwa-install-actions {
+              width: 100%;
+              display: grid !important;
+              grid-template-columns: repeat(2, minmax(0, 1fr));
+              gap: 8px;
+            }
+
+            .pwa-install-primary {
+              grid-column: 1 / -1;
+              width: 100% !important;
+            }
+
+            .pwa-install-secondary {
+              width: 100% !important;
+            }
+
+            .pwa-install-icon-btn {
+              justify-self: end;
+              width: fit-content;
+            }
           }
         `}</style>
 
@@ -118,8 +156,8 @@ const InstallBanner = ({ visible, platform, installing, onInstall, onDismiss, on
         </div>
 
         {/* Steps */}
-        <div style={{ display: 'flex', gap: '16px', marginBottom: '16px' }}>
-          <div style={{
+        <div className="pwa-install-ios-steps" style={{ display: 'flex', gap: '16px', marginBottom: '16px' }}>
+          <div className="pwa-install-ios-step" style={{
             display: 'flex',
             alignItems: 'center',
             gap: '8px',
@@ -133,7 +171,7 @@ const InstallBanner = ({ visible, platform, installing, onInstall, onDismiss, on
               {strings.install.iosStep1}
             </span>
           </div>
-          <div style={{
+          <div className="pwa-install-ios-step" style={{
             display: 'flex',
             alignItems: 'center',
             gap: '8px',
@@ -150,6 +188,7 @@ const InstallBanner = ({ visible, platform, installing, onInstall, onDismiss, on
         </div>
 
         <button
+          className="pwa-install-primary"
           onClick={onIOSDismiss}
           style={{
             width: '100%',
@@ -178,17 +217,18 @@ const InstallBanner = ({ visible, platform, installing, onInstall, onDismiss, on
       aria-modal="true"
       aria-label={strings.aria.installBanner}
       tabIndex={-1}
+      className="pwa-install-banner"
       style={{
         position: 'fixed',
-        bottom: 0,
+        bottom: 'calc(var(--mobile-bottom-nav-height, 64px) + env(safe-area-inset-bottom, 0px))',
         left: 0,
         right: 0,
         zIndex: 9999,
         background: 'var(--pwa-install-bg, linear-gradient(135deg, #0f172a, #1e293b))',
         borderTop: '1px solid var(--pwa-install-border, #334155)',
-        padding: '16px',
+        padding: '16px 16px calc(env(safe-area-inset-bottom, 0px) + 12px)',
         display: 'flex',
-        alignItems: 'center',
+        alignItems: 'flex-start',
         gap: '12px',
         animation: 'pwa-slide-up 200ms ease-out',
         boxShadow: '0 -4px 24px rgba(0,0,0,0.3)',
@@ -209,7 +249,7 @@ const InstallBanner = ({ visible, platform, installing, onInstall, onDismiss, on
       />
 
       {/* Text */}
-      <div style={{ flex: 1, minWidth: 0 }}>
+      <div style={{ flex: 1, minWidth: 0, paddingTop: '2px' }}>
         <p style={{
           margin: 0,
           color: 'var(--pwa-install-text, #f1f5f9)',
@@ -230,8 +270,12 @@ const InstallBanner = ({ visible, platform, installing, onInstall, onDismiss, on
       </div>
 
       {/* Actions */}
-      <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
+      <div
+        className="pwa-install-actions"
+        style={{ display: 'flex', gap: '8px', flexShrink: 0, alignItems: 'center', flexWrap: 'wrap' }}
+      >
         <button
+          className="pwa-install-primary"
           onClick={onInstall}
           disabled={installing}
           aria-label={strings.install.install}
@@ -253,6 +297,7 @@ const InstallBanner = ({ visible, platform, installing, onInstall, onDismiss, on
         </button>
 
         <button
+          className="pwa-install-secondary"
           onClick={onDismiss}
           disabled={installing}
           aria-label={strings.install.notNow}
@@ -273,6 +318,7 @@ const InstallBanner = ({ visible, platform, installing, onInstall, onDismiss, on
         </button>
 
         <button
+          className="pwa-install-icon-btn"
           onClick={onDismissForever}
           disabled={installing}
           aria-label={strings.install.dontAsk}
@@ -294,6 +340,7 @@ const InstallBanner = ({ visible, platform, installing, onInstall, onDismiss, on
         </button>
 
         <button
+          className="pwa-install-icon-btn"
           onClick={onDismiss}
           disabled={installing}
           aria-label={strings.aria.closeInstall}

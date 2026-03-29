@@ -27,7 +27,7 @@ const BottomNav = () => {
 
   return (
     <nav
-      className="md:hidden fixed bottom-0 left-0 right-0 z-50 glass border-t border-white/10"
+      className="md:hidden fixed bottom-0 left-0 right-0 z-50 glass border-t border-[color:var(--color-outline-variant)] pb-[env(safe-area-inset-bottom,0px)]"
       aria-label="Main navigation"
     >
       <div className="flex items-stretch justify-around">

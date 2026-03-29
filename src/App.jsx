@@ -70,7 +70,7 @@ function App() {
   const NotFound = lazy(() => import('./pages/NotFound'))
 
   return (
-    <div className="min-h-screen flex flex-col pb-16 md:pb-0">
+    <div className="app-shell min-h-screen flex flex-col">
       <PWAManager />
       <OnboardingWizard 
         isOpen={showOnboarding} 

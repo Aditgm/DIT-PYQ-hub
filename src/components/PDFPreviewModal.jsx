@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react'
 import { X, FileText, Loader2, AlertCircle, Download, ExternalLink } from 'lucide-react'
-import { getCloudinaryInlineUrl } from '../lib/cloudinary'
 import { getPreviewUrl, isPDF } from '../lib/fileType'
 
 const PDFPreviewModal = ({ 
@@ -11,6 +10,7 @@ const PDFPreviewModal = ({
 }) => {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [isStandaloneMobile, setIsStandaloneMobile] = useState(false)
 
   // Reset state when paper changes
   useEffect(() => {
@@ -20,24 +20,44 @@ const PDFPreviewModal = ({
     }
   }, [isOpen, paper])
 
+  useEffect(() => {
+    const detectStandaloneMobile = () => {
+      const isSmallScreen = window.matchMedia('(max-width: 767px)').matches
+      const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true
+      setIsStandaloneMobile(Boolean(isSmallScreen && isStandalone))
+    }
+
+    detectStandaloneMobile()
+    window.addEventListener('resize', detectStandaloneMobile)
+
+    return () => {
+      window.removeEventListener('resize', detectStandaloneMobile)
+    }
+  }, [])
+
   // Handle iframe load
   const handleIframeLoad = () => {
     setIsLoading(false)
     setError(null)
   }
 
-  // Handle iframe error via a timeout fallback
-  // iframes don't reliably fire onerror for PDF content
   useEffect(() => {
-    if (!isOpen || !paper?.fileUrl) return
+    const activeFileUrl = paper?.file_url || paper?.fileUrl
+    if (!isOpen || !activeFileUrl) return
+    if (isStandaloneMobile && isPDF(paper)) {
+      setIsLoading(false)
+      return
+    }
+
     const timer = setTimeout(() => {
       if (isLoading) {
         setIsLoading(false)
-        // Don't set error — the PDF may still be loading in the iframe
+        setError('Inline preview is not available on this device. Use open/download below.')
       }
-    }, 8000)
+    }, 10000)
+
     return () => clearTimeout(timer)
-  }, [isOpen, paper, isLoading])
+  }, [isOpen, paper, isLoading, isStandaloneMobile])
 
   // Handle escape key
   useEffect(() => {
@@ -70,6 +90,9 @@ const PDFPreviewModal = ({
   // PDF: browser renders natively in iframe
   // DOCX: wrapped in Microsoft Office Online viewer
   const previewUrl = getPreviewUrl(paper)
+  const fileUrl = paper?.file_url || paper?.fileUrl
+  const showStandaloneFallback = Boolean(isStandaloneMobile && isPDF(paper))
+  const canRenderIframe = Boolean(previewUrl) && !showStandaloneFallback
 
   return (
     <div 
@@ -86,10 +109,10 @@ const PDFPreviewModal = ({
       />
       
       {/* Modal Content */}
-      <div className="relative w-full max-w-4xl h-[90vh] bg-surface-container rounded-2xl overflow-hidden shadow-2xl flex flex-col animate-in fade-in zoom-in-95 duration-200">
+      <div className="relative w-full max-w-4xl h-[calc(100dvh-1rem)] md:h-[90vh] bg-surface-container rounded-2xl overflow-hidden shadow-2xl flex flex-col animate-in fade-in zoom-in-95 duration-200">
         
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 bg-surface-container-highest">
+        <div className="flex items-center justify-between px-4 md:px-6 py-3 md:py-4 border-b border-white/10 bg-surface-container-highest">
           <div className="min-w-0 flex-1 mr-4">
             <h2 
               id="modal-title" 
@@ -106,16 +129,16 @@ const PDFPreviewModal = ({
             {/* Download Button */}
             <button
               onClick={() => onDownload(paper)}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-white font-medium text-sm hover:bg-primary/90 transition-colors"
+              className="flex items-center gap-2 px-3 md:px-4 py-2 rounded-lg bg-primary text-white font-medium text-sm hover:bg-primary/90 transition-colors"
             >
               <Download className="w-4 h-4" />
-              Download
+              <span className="hidden sm:inline">Download</span>
             </button>
             
             {/* Close Button */}
             <button
               onClick={onClose}
-              className="p-2 rounded-lg hover:bg-white/10 text-on-surface-variant hover:text-on-surface transition-colors"
+              className="p-2 rounded-lg hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-colors"
               aria-label="Close preview"
             >
               <X className="w-5 h-5" />
@@ -124,13 +147,46 @@ const PDFPreviewModal = ({
         </div>
         
         {/* PDF Viewer — uses iframe so browser's built-in PDF viewer renders the document */}
-        <div className="flex-1 relative bg-gray-900">
+        <div className="flex-1 relative bg-surface">
           {/* Loading State */}
           {isLoading && (
             <div className="absolute inset-0 flex items-center justify-center bg-surface-container z-10">
               <div className="text-center">
                 <Loader2 className="w-10 h-10 text-primary animate-spin mx-auto mb-3" />
                 <p className="text-on-surface-variant">Loading preview...</p>
+              </div>
+            </div>
+          )}
+
+          {/* Mobile PWA fallback for PDF */}
+          {showStandaloneFallback && !error && (
+            <div className="absolute inset-0 flex items-center justify-center bg-surface-container z-10">
+              <div className="text-center max-w-md px-4">
+                <FileText className="w-12 h-12 text-on-surface-variant mx-auto mb-3 opacity-60" />
+                <p className="text-on-surface mb-2">Preview is limited in installed app mode</p>
+                <p className="text-sm text-on-surface-variant mb-4">
+                  Open this PDF in browser or download it to view smoothly on mobile.
+                </p>
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-2">
+                  {fileUrl && (
+                    <a
+                      href={fileUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-white/10 text-on-surface hover:bg-surface-container-high transition-colors"
+                    >
+                      Open in browser
+                      <ExternalLink className="w-4 h-4" />
+                    </a>
+                  )}
+                  <button
+                    onClick={() => onDownload(paper)}
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-white font-medium text-sm hover:bg-primary/90 transition-colors"
+                  >
+                    <Download className="w-4 h-4" />
+                    Download file
+                  </button>
+                </div>
               </div>
             </div>
           )}
@@ -156,17 +212,21 @@ const PDFPreviewModal = ({
           )}
           
           {/* Preview via iframe — PDF renders natively, DOCX uses Microsoft viewer */}
-          {!error && previewUrl && (
+          {!error && canRenderIframe && (
             <iframe
               src={previewUrl}
               title={`Preview: ${paper.title}`}
               className="w-full h-full border-0"
               onLoad={handleIframeLoad}
+              onError={() => {
+                setIsLoading(false)
+                setError('Unable to load preview on this device.')
+              }}
             />
           )}
           
           {/* Fallback for no URL */}
-          {!previewUrl && !error && (
+          {!previewUrl && !error && !showStandaloneFallback && (
             <div className="absolute inset-0 flex items-center justify-center bg-surface-container">
               <div className="text-center px-4">
                 <FileText className="w-16 h-16 text-on-surface-variant mx-auto mb-3 opacity-50" />
@@ -180,13 +240,13 @@ const PDFPreviewModal = ({
         </div>
         
         {/* Footer */}
-        <div className="px-6 py-3 border-t border-white/10 bg-surface-container flex items-center justify-between">
+        <div className="px-4 md:px-6 py-3 border-t border-white/10 bg-surface-container flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
           <p className="text-xs text-on-surface-variant">
             Full document preview. Download for offline access.
           </p>
-          {previewUrl && (
+          {(previewUrl || fileUrl) && (
             <a
-              href={previewUrl}
+              href={fileUrl || previewUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors"

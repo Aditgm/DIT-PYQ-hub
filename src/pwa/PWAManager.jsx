@@ -53,6 +53,32 @@ const PWAManager = () => {
     })
   }, [])
 
+  useEffect(() => {
+    const root = document.documentElement
+
+    const syncOffsets = () => {
+      const isMobile = window.matchMedia('(max-width: 767px)').matches
+      const installVisible = showInstall || showIOS
+
+      const topOffset = updateAvailable ? (isMobile ? '74px' : '66px') : '0px'
+      const bottomOffset = installVisible
+        ? (isMobile ? (platform === 'ios' ? '220px' : '140px') : (platform === 'ios' ? '170px' : '96px'))
+        : '0px'
+
+      root.style.setProperty('--pwa-top-offset', topOffset)
+      root.style.setProperty('--pwa-bottom-offset', bottomOffset)
+    }
+
+    syncOffsets()
+    window.addEventListener('resize', syncOffsets)
+
+    return () => {
+      window.removeEventListener('resize', syncOffsets)
+      root.style.setProperty('--pwa-top-offset', '0px')
+      root.style.setProperty('--pwa-bottom-offset', '0px')
+    }
+  }, [updateAvailable, showInstall, showIOS, platform])
+
   // Handle "remind later" — dismiss for 1 hour
   const handleRemindLater = () => {
     dismiss()

@@ -47,6 +47,7 @@ const UpdateBanner = ({ visible, isUpdating, onReload, onRemindLater, onDismiss,
       role="alert"
       aria-label={strings.aria.updateBanner}
       aria-live="polite"
+      className="pwa-update-banner"
       style={{
         position: 'fixed',
         top: 0,
@@ -55,9 +56,9 @@ const UpdateBanner = ({ visible, isUpdating, onReload, onRemindLater, onDismiss,
         zIndex: 9999,
         background: 'var(--pwa-update-bg, #1e293b)',
         borderBottom: '1px solid var(--pwa-update-border, #334155)',
-        padding: '12px 16px',
+        padding: 'calc(env(safe-area-inset-top, 0px) + 12px) 16px 12px',
         display: 'flex',
-        alignItems: 'center',
+        alignItems: 'flex-start',
         gap: '12px',
         animation: 'pwa-slide-down 200ms ease-out',
         boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
@@ -67,6 +68,33 @@ const UpdateBanner = ({ visible, isUpdating, onReload, onRemindLater, onDismiss,
         @keyframes pwa-slide-down {
           from { transform: translateY(-100%); opacity: 0; }
           to { transform: translateY(0); opacity: 1; }
+        }
+
+        @media (max-width: 640px) {
+          .pwa-update-banner {
+            padding: calc(env(safe-area-inset-top, 0px) + 10px) 12px 10px !important;
+          }
+
+          .pwa-update-actions {
+            width: 100%;
+            display: grid !important;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 8px;
+          }
+
+          .pwa-update-primary {
+            grid-column: 1 / -1;
+            width: 100% !important;
+          }
+
+          .pwa-update-secondary {
+            width: 100% !important;
+          }
+
+          .pwa-update-icon-btn {
+            justify-self: end;
+            width: fit-content;
+          }
         }
       `}</style>
 
@@ -83,7 +111,7 @@ const UpdateBanner = ({ visible, isUpdating, onReload, onRemindLater, onDismiss,
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
 
       {/* Text */}
-      <div style={{ flex: 1, minWidth: 0 }}>
+      <div style={{ flex: 1, minWidth: 0, paddingTop: '2px' }}>
         <p style={{
           margin: 0,
           color: 'var(--pwa-update-text, #f1f5f9)',
@@ -104,8 +132,12 @@ const UpdateBanner = ({ visible, isUpdating, onReload, onRemindLater, onDismiss,
       </div>
 
       {/* Actions */}
-      <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
+      <div
+        className="pwa-update-actions"
+        style={{ display: 'flex', gap: '8px', flexShrink: 0, alignItems: 'center', flexWrap: 'wrap' }}
+      >
         <button
+          className="pwa-update-primary"
           onClick={onReload}
           disabled={isUpdating}
           aria-label={strings.update.reload}
@@ -132,6 +164,7 @@ const UpdateBanner = ({ visible, isUpdating, onReload, onRemindLater, onDismiss,
         </button>
 
         <button
+          className="pwa-update-secondary"
           onClick={onRemindLater}
           disabled={isUpdating}
           aria-label={strings.update.remindLater}
@@ -152,6 +185,7 @@ const UpdateBanner = ({ visible, isUpdating, onReload, onRemindLater, onDismiss,
         </button>
 
         <button
+          className="pwa-update-icon-btn"
           onClick={onMute}
           disabled={isUpdating}
           aria-label={strings.update.mute}
@@ -171,6 +205,7 @@ const UpdateBanner = ({ visible, isUpdating, onReload, onRemindLater, onDismiss,
         </button>
 
         <button
+          className="pwa-update-icon-btn"
           onClick={onDismiss}
           disabled={isUpdating}
           aria-label={strings.aria.closeUpdate}
