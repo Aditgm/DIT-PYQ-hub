@@ -120,10 +120,17 @@ const PaperBrowse = () => {
   const [recommendationsLoading, setRecommendationsLoading] = useState(false)
   const [showBackToTop, setShowBackToTop] = useState(false)
   
-  // Back to top scroll listener
+  // Back to top scroll listener with throttling
   useEffect(() => {
+    let ticking = false
     const handleScroll = () => {
-      setShowBackToTop(window.scrollY > 500)
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          setShowBackToTop(window.scrollY > 500)
+          ticking = false
+        })
+        ticking = true
+      }
     }
     window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
