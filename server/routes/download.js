@@ -181,8 +181,88 @@ function getBearerToken(req) {
   return null;
 }
 
-const RATE_LIMIT_WINDOW_MS = 3 * 60 * 60 * 1000; // 3 hours
-const RATE_LIMIT_MAX_DOWNLOADS = 5;
+const RATE_LIMIT_DAY_WINDOW_MS = 24 * 60 * 60 * 1000; // 24 hours
+const RATE_LIMIT_HOUR_WINDOW_MS = 60 * 60 * 1000; // 1 hour
+const RATE_LIMIT_MAX_PER_DAY = 3;
+const RATE_LIMIT_MAX_PER_HOUR = 1;
+
+// Dual sliding window rate limiter
+function checkRateLimit(userId) {
+  const now = Date.now();
+  const key = userId;
+  
+  let userData = downloadRateLimitMap.get(key);
+  
+  if (!userData) {
+    userData = {
+      dayWindowStart: now,
+      dayCount: 0,
+      hourWindowStart: now,
+      hourCount: 0
+    };
+    downloadRateLimitMap.set(key, userData);
+  }
+
+  // Reset hourly window if expired
+  if (userData.hourWindowStart < now - RATE_LIMIT_HOUR_WINDOW_MS) {
+    userData.hourWindowStart = now;
+    userData.hourCount = 0;
+  }
+
+  // Reset daily window if expired
+  if (userData.dayWindowStart < now - RATE_LIMIT_DAY_WINDOW_MS) {
+    userData.dayWindowStart = now;
+    userData.dayCount = 0;
+  }
+  
+  cleanupExpiredEntries();
+  
+  // Check limits
+  if (userData.hourCount >= RATE_LIMIT_MAX_PER_HOUR) {
+    const nextAvailableTime = new Date(userData.hourWindowStart + RATE_LIMIT_HOUR_WINDOW_MS).toISOString();
+    return { allowed: false, nextAvailableTime };
+  }
+
+  if (userData.dayCount >= RATE_LIMIT_MAX_PER_DAY) {
+    const nextAvailableTime = new Date(userData.dayWindowStart + RATE_LIMIT_DAY_WINDOW_MS).toISOString();
+    return { allowed: false, nextAvailableTime };
+  }
+  
+  return { allowed: true };
+}
+
+function recordDownload(userId) {
+  const now = Date.now();
+  const key = userId;
+  
+  let userData = downloadRateLimitMap.get(key);
+  
+  if (!userData) {
+    userData = {
+      dayWindowStart: now,
+      dayCount: 1,
+      hourWindowStart: now,
+      hourCount: 1
+    };
+  } else {
+    // Reset hourly window if expired
+    if (userData.hourWindowStart < now - RATE_LIMIT_HOUR_WINDOW_MS) {
+      userData.hourWindowStart = now;
+      userData.hourCount = 0;
+    }
+
+    // Reset daily window if expired
+    if (userData.dayWindowStart < now - RATE_LIMIT_DAY_WINDOW_MS) {
+      userData.dayWindowStart = now;
+      userData.dayCount = 0;
+    }
+
+    userData.dayCount += 1;
+    userData.hourCount += 1;
+  }
+  
+  downloadRateLimitMap.set(key, userData);
+}
 
 const downloadRateLimitMap = new Map();
 
@@ -193,7 +273,8 @@ export function resetDownloadRateLimitForTests() {
 function cleanupExpiredEntries() {
   const now = Date.now();
   for (const [key, data] of downloadRateLimitMap.entries()) {
-    if (data.windowStart < now - RATE_LIMIT_WINDOW_MS) {
+    if (data.dayWindowStart < now - RATE_LIMIT_DAY_WINDOW_MS && 
+        data.hourWindowStart < now - RATE_LIMIT_HOUR_WINDOW_MS) {
       downloadRateLimitMap.delete(key);
     }
   }
