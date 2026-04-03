@@ -54,7 +54,7 @@ const PaperVersionHistory = ({ paperId }) => {
         >
           <button
             onClick={() => setExpandedVersion(expandedVersion === index ? null : index)}
-            className="w-full p-4 text-left flex items-center justify-between hover:bg-gray-50"
+            className="w-full p-4 text-left flex items-center justify-between hover:bg-surface-container-high transition-colors"
             aria-expanded={expandedVersion === index}
           >
             <div className="flex items-center gap-3">

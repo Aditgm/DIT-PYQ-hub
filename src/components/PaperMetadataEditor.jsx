@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { XCircle } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -132,10 +133,19 @@ const PaperMetadataEditor = ({
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-xl p-6 max-w-2xl w-full">
-      <h3 className="text-xl font-bold mb-4">
-        {mode === 'approval' ? 'Review & Edit Paper' : 'Edit Paper Metadata'}
-      </h3>
+    <div className="surface-modal rounded-t-2xl sm:rounded-2xl w-full sm:max-w-2xl max-h-[90vh] overflow-hidden flex flex-col border border-white/10">
+      <div className="flex-1 overflow-y-auto p-6">
+      <div className="flex items-center justify-between p-4 border-b border-white/10">
+        <h3 className="text-xl font-bold text-on-surface">
+          {mode === 'approval' ? 'Review & Edit Paper' : 'Edit Paper Metadata'}
+        </h3>
+        <button
+          onClick={onClose}
+          className="p-2 rounded-lg hover:bg-surface-container-high transition-colors"
+        >
+          <XCircle className="w-5 h-5 text-on-surface-variant" />
+        </button>
+      </div>
 
       {error && (
         <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-md" role="alert">
@@ -146,41 +156,41 @@ const PaperMetadataEditor = ({
       <form className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="title">
+            <label className="block text-sm font-medium text-on-surface mb-1" htmlFor="title">
               Title *
             </label>
             <input
               id="title"
               type="text"
               {...register('title')}
-              className={`w-full px-3 py-2 border rounded-md ${errors.title ? 'border-red-500' : 'border-gray-300'}`}
+              className={`w-full px-3 py-2 border rounded-md bg-surface-container ${errors.title ? 'border-red-500' : 'border-white/20'} text-on-surface`}
               aria-invalid={errors.title ? 'true' : 'false'}
               aria-describedby={errors.title ? 'title-error' : undefined}
             />
-            {errors.title && <p id="title-error" className="text-red-500 text-sm mt-1">{errors.title.message}</p>}
+            {errors.title && <p id="title-error" className="text-red-400 text-sm mt-1">{errors.title.message}</p>}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="subject">
+            <label className="block text-sm font-medium text-on-surface mb-1" htmlFor="subject">
               Subject *
             </label>
             <input
               id="subject"
               type="text"
               {...register('subject')}
-              className={`w-full px-3 py-2 border rounded-md ${errors.subject ? 'border-red-500' : 'border-gray-300'}`}
+              className={`w-full px-3 py-2 border rounded-md bg-surface-container ${errors.subject ? 'border-red-500' : 'border-white/20'} text-on-surface`}
             />
-            {errors.subject && <p className="text-red-500 text-sm mt-1">{errors.subject.message}</p>}
+            {errors.subject && <p className="text-red-400 text-sm mt-1">{errors.subject.message}</p>}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="degree">
+            <label className="block text-sm font-medium text-on-surface mb-1" htmlFor="degree">
               Degree *
             </label>
             <select
               id="degree"
               {...register('degree')}
-              className={`w-full px-3 py-2 border rounded-md ${errors.degree ? 'border-red-500' : 'border-gray-300'}`}
+              className={`w-full px-3 py-2 border rounded-md bg-surface-container ${errors.degree ? 'border-red-500' : 'border-white/20'} text-on-surface`}
             >
               <option value="BTech">BTech</option>
               <option value="BArch">BArch</option>
@@ -188,83 +198,83 @@ const PaperMetadataEditor = ({
               <option value="MCA">MCA</option>
               <option value="MTech">MTech</option>
             </select>
-            {errors.degree && <p className="text-red-500 text-sm mt-1">{errors.degree.message}</p>}
+            {errors.degree && <p className="text-red-400 text-sm mt-1">{errors.degree.message}</p>}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="branch">
+            <label className="block text-sm font-medium text-on-surface mb-1" htmlFor="branch">
               Branch *
             </label>
             <input
               id="branch"
               type="text"
               {...register('branch')}
-              className={`w-full px-3 py-2 border rounded-md ${errors.branch ? 'border-red-500' : 'border-gray-300'}`}
+              className={`w-full px-3 py-2 border rounded-md bg-surface-container ${errors.branch ? 'border-red-500' : 'border-white/20'} text-on-surface`}
             />
-            {errors.branch && <p className="text-red-500 text-sm mt-1">{errors.branch.message}</p>}
+            {errors.branch && <p className="text-red-400 text-sm mt-1">{errors.branch.message}</p>}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="semester">
+            <label className="block text-sm font-medium text-on-surface mb-1" htmlFor="semester">
               Semester *
             </label>
             <select
               id="semester"
               {...register('semester', { valueAsNumber: true })}
-              className={`w-full px-3 py-2 border rounded-md ${errors.semester ? 'border-red-500' : 'border-gray-300'}`}
+              className={`w-full px-3 py-2 border rounded-md bg-surface-container ${errors.semester ? 'border-red-500' : 'border-white/20'} text-on-surface`}
             >
               {[1, 2, 3, 4, 5, 6, 7, 8].map(sem => (
                 <option key={sem} value={sem}>Semester {sem}</option>
               ))}
             </select>
-            {errors.semester && <p className="text-red-500 text-sm mt-1">{errors.semester.message}</p>}
+            {errors.semester && <p className="text-red-400 text-sm mt-1">{errors.semester.message}</p>}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="year">
+            <label className="block text-sm font-medium text-on-surface mb-1" htmlFor="year">
               Year *
             </label>
             <input
               id="year"
               type="number"
               {...register('year', { valueAsNumber: true })}
-              className={`w-full px-3 py-2 border rounded-md ${errors.year ? 'border-red-500' : 'border-gray-300'}`}
+              className={`w-full px-3 py-2 border rounded-md bg-surface-container ${errors.year ? 'border-red-500' : 'border-white/20'} text-on-surface`}
             />
-            {errors.year && <p className="text-red-500 text-sm mt-1">{errors.year.message}</p>}
+            {errors.year && <p className="text-red-400 text-sm mt-1">{errors.year.message}</p>}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="exam_type">
+            <label className="block text-sm font-medium text-on-surface mb-1" htmlFor="exam_type">
               Exam Type *
             </label>
             <select
               id="exam_type"
               {...register('exam_type')}
-              className={`w-full px-3 py-2 border rounded-md ${errors.exam_type ? 'border-red-500' : 'border-gray-300'}`}
+              className={`w-full px-3 py-2 border rounded-md bg-surface-container ${errors.exam_type ? 'border-red-500' : 'border-white/20'} text-on-surface`}
             >
               <option value="Mid Term">Mid Term</option>
               <option value="End Term">End Term</option>
               <option value="Supplementary">Supplementary</option>
             </select>
-            {errors.exam_type && <p className="text-red-500 text-sm mt-1">{errors.exam_type.message}</p>}
+            {errors.exam_type && <p className="text-red-400 text-sm mt-1">{errors.exam_type.message}</p>}
           </div>
 
           <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="description">
+            <label className="block text-sm font-medium text-on-surface mb-1" htmlFor="description">
               Description
             </label>
             <textarea
               id="description"
               {...register('description')}
               rows={2}
-              className={`w-full px-3 py-2 border rounded-md ${errors.description ? 'border-red-500' : 'border-gray-300'}`}
+              className={`w-full px-3 py-2 border rounded-md bg-surface-container ${errors.description ? 'border-red-500' : 'border-white/20'} text-on-surface`}
             />
-            {errors.description && <p className="text-red-500 text-sm mt-1">{errors.description.message}</p>}
+            {errors.description && <p className="text-red-400 text-sm mt-1">{errors.description.message}</p>}
           </div>
         </div>
 
-        <div className="bg-gray-50 p-4 rounded-md">
-          <h4 className="text-sm font-semibold text-gray-700 mb-2">File Information (Read-only)</h4>
+        <div className="bg-surface-container-low p-4 rounded-md">
+          <h4 className="text-sm font-semibold text-on-surface mb-2">File Information (Read-only)</h4>
           <div className="grid grid-cols-2 gap-2 text-sm text-gray-600">
             <div>File type: {paper.file_type}</div>
             <div>File size: {(paper.file_size / 1024 / 1024).toFixed(2)} MB</div>
@@ -274,25 +284,25 @@ const PaperMetadataEditor = ({
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="edit_reason">
-            Edit Reason * {hasChanges && <span className="text-red-500">(Required when changes are made)</span>}
+          <label className="block text-sm font-medium text-on-surface mb-1" htmlFor="edit_reason">
+            Edit Reason * {hasChanges && <span className="text-red-400">(Required when changes are made)</span>}
           </label>
           <textarea
             id="edit_reason"
             {...register('edit_reason')}
             rows={2}
-            className={`w-full px-3 py-2 border rounded-md ${errors.edit_reason ? 'border-red-500' : 'border-gray-300'}`}
+            className={`w-full px-3 py-2 border rounded-md bg-surface-container ${errors.edit_reason ? 'border-red-500' : 'border-white/20'} text-on-surface`}
             placeholder="Explain why these changes are being made..."
             required={hasChanges}
           />
-          {errors.edit_reason && <p className="text-red-500 text-sm mt-1">{errors.edit_reason.message}</p>}
+          {errors.edit_reason && <p className="text-red-400 text-sm mt-1">{errors.edit_reason.message}</p>}
         </div>
 
-        <div className="flex gap-3 pt-4 border-t">
+        <div className="flex gap-3 pt-4 border-t border-white/10">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
+            className="px-4 py-2 border border-white/20 rounded-md hover:bg-surface-container-high transition-colors text-on-surface"
             disabled={isSaving}
           >
             Cancel
@@ -302,7 +312,7 @@ const PaperMetadataEditor = ({
             <button
               type="button"
               onClick={handleSubmit(onSaveMetadata)}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+              className="px-4 py-2 bg-primary text-on-primary rounded-md hover:bg-primary/90 disabled:opacity-50 transition-colors"
               disabled={isSaving || !hasChanges}
             >
               {isSaving ? 'Saving...' : 'Save Changes'}
@@ -314,7 +324,7 @@ const PaperMetadataEditor = ({
               <button
                 type="button"
                 onClick={handleSubmit(onReject)}
-                className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50"
+                className="px-4 py-2 bg-red-500/20 border border-red-500/30 text-red-400 rounded-md hover:bg-red-500/30 disabled:opacity-50 transition-colors"
                 disabled={isSaving}
               >
                 {isSaving ? 'Processing...' : 'Reject'}
@@ -322,7 +332,7 @@ const PaperMetadataEditor = ({
               <button
                 type="button"
                 onClick={handleSubmit(onApprove)}
-                className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50"
+                className="px-4 py-2 bg-green-500/20 border border-green-500/30 text-green-400 rounded-md hover:bg-green-500/30 disabled:opacity-50 transition-colors"
                 disabled={isSaving}
               >
                 {isSaving ? 'Processing...' : 'Approve'}
@@ -331,6 +341,7 @@ const PaperMetadataEditor = ({
           )}
         </div>
       </form>
+      </div>
     </div>
   );
 };
