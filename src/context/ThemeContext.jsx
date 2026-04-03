@@ -1,6 +1,20 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react'
+import React, { createContext, useCallback, useContext, useEffect, useState } from 'react'
 
 const ThemeContext = createContext(null)
+const THEME_STORAGE_KEY = 'theme'
+
+const getInitialTheme = () => {
+  if (typeof window === 'undefined') return 'dark'
+
+  try {
+    const stored = window.localStorage.getItem(THEME_STORAGE_KEY)
+    if (stored === 'light' || stored === 'dark') return stored
+  } catch {
+    // Ignore storage access failures and fall back to system preference.
+  }
+
+  return window.matchMedia?.('(prefers-color-scheme: light)').matches ? 'light' : 'dark'
+}
 
 export const useTheme = () => {
   const context = useContext(ThemeContext)
@@ -8,62 +22,54 @@ export const useTheme = () => {
   return context
 }
 
-/**
- * ThemeProvider — manages dark/light mode with:
- *  - localStorage persistence
- *  - system preference detection + live listener
- *  - smooth CSS transition on switch (no layout jank)
- *  - document-level class toggling for Tailwind
- */
 export const ThemeProvider = ({ children }) => {
-  const [theme, setTheme] = useState(() => {
-    const stored = localStorage.getItem('theme')
-    if (stored === 'light' || stored === 'dark') return stored
-    if (window.matchMedia?.('(prefers-color-scheme: light)').matches) return 'light'
-    return 'dark'
-  })
+  const [theme, setTheme] = useState(getInitialTheme)
 
-  // Apply theme to <html> element
   useEffect(() => {
+    if (typeof document === 'undefined') return undefined
+
     const root = document.documentElement
-
-    // Add transition class before changing theme
     root.classList.add('theme-transitioning')
+    root.classList.toggle('light', theme === 'light')
+    root.classList.toggle('dark', theme === 'dark')
+    root.dataset.theme = theme
+    root.style.colorScheme = theme
 
-    if (theme === 'light') {
-      root.classList.add('light')
-    } else {
-      root.classList.remove('light')
+    try {
+      window.localStorage.setItem(THEME_STORAGE_KEY, theme)
+    } catch {
+      // Ignore storage access failures.
     }
 
-    localStorage.setItem('theme', theme)
-
-    // Remove transition class after animation completes
-    const timer = setTimeout(() => {
+    const timer = window.setTimeout(() => {
       root.classList.remove('theme-transitioning')
     }, 300)
 
-    return () => clearTimeout(timer)
+    return () => window.clearTimeout(timer)
   }, [theme])
 
-  // Listen for OS theme changes (live updates when user changes system settings)
   useEffect(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) return undefined
+
     const mediaQuery = window.matchMedia('(prefers-color-scheme: light)')
 
-    const handleChange = (e) => {
-      // Only auto-switch if user hasn't manually set a preference
-      const stored = localStorage.getItem('theme')
-      if (!stored) {
-        setTheme(e.matches ? 'light' : 'dark')
+    const handleChange = (event) => {
+      try {
+        const stored = window.localStorage.getItem(THEME_STORAGE_KEY)
+        if (!stored) {
+          setTheme(event.matches ? 'light' : 'dark')
+        }
+      } catch {
+        setTheme(event.matches ? 'light' : 'dark')
       }
     }
 
-    mediaQuery.addEventListener('change', handleChange)
-    return () => mediaQuery.removeEventListener('change', handleChange)
+    mediaQuery.addEventListener?.('change', handleChange)
+    return () => mediaQuery.removeEventListener?.('change', handleChange)
   }, [])
 
   const toggleTheme = useCallback(() => {
-    setTheme(prev => prev === 'dark' ? 'light' : 'dark')
+    setTheme((previousTheme) => (previousTheme === 'dark' ? 'light' : 'dark'))
   }, [])
 
   return (

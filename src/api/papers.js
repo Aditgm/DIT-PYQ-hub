@@ -177,9 +177,11 @@ export async function initiateDownload(paperId, authToken) {
   const responseData = await response.json().catch(() => null);
   
   if (!response.ok) {
-    const errorMessage = response.status === 404
-      ? 'Download API endpoint not found. Verify /api/download proxy deployment and API_SERVER_URL.'
-      : (responseData?.error || 'Failed to initiate download');
+    const errorMessage = responseData?.error || (
+      response.status === 404
+        ? 'Download API endpoint not found. Verify /api/download proxy deployment and API_SERVER_URL.'
+        : 'Failed to initiate download'
+    );
     const error = new Error(errorMessage);
     error.status = response.status;
     error.nextAvailableTime = responseData?.nextAvailableTime;

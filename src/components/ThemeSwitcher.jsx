@@ -1,15 +1,16 @@
 import React from 'react';
 import { useTheme } from '../context/ThemeContext';
 
-const ThemeSwitcher = () => {
+const ThemeSwitcher = ({ className = '' }) => {
   const { theme, toggleTheme } = useTheme();
   const isLight = theme === 'light';
 
   return (
     <button
+      type="button"
       onClick={toggleTheme}
       aria-label={isLight ? 'Switch to dark mode' : 'Switch to light mode'}
-      className="p-2 rounded-full hover:bg-surface-container-highest/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 transition-colors duration-200"
+      className={`p-2 rounded-full hover:bg-surface-container-highest/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 transition-colors duration-200 ${className}`}
     >
       {/* Sun icon for light mode (showing when currently dark) */}
       {!isLight && (

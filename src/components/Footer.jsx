@@ -7,12 +7,11 @@ const Footer = () => {
   const { theme } = useTheme()
   const isLight = theme === 'light'
   const borderColorClass = isLight ? 'border-outline-variant/10' : 'border-white/5'
-  
+
   return (
     <footer className={`border-t ${borderColorClass} py-8 px-6`}>
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
-          {/* Brand */}
           <div>
             <Link to="/" className="flex items-center gap-2 mb-3">
               <div className="w-8 h-8 rounded-lg bg-gradient-primary flex items-center justify-center">
@@ -25,7 +24,6 @@ const Footer = () => {
             </p>
           </div>
 
-          {/* Quick Links */}
           <div>
             <h4 className="text-sm font-semibold text-on-surface mb-3">Quick Links</h4>
             <ul className="space-y-2">
@@ -35,7 +33,6 @@ const Footer = () => {
             </ul>
           </div>
 
-          {/* Resources */}
           <div>
             <h4 className="text-sm font-semibold text-on-surface mb-3">Resources</h4>
             <ul className="space-y-2">
@@ -45,7 +42,6 @@ const Footer = () => {
             </ul>
           </div>
 
-          {/* Info */}
           <div>
             <h4 className="text-sm font-semibold text-on-surface mb-3">Information</h4>
             <ul className="space-y-2">
