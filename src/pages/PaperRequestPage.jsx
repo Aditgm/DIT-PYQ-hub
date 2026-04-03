@@ -408,12 +408,12 @@ const PaperRequestPage = () => {
                       <strong>Semester:</strong> {selectedRequest.semester}
                     </p>
                   )}
-                  {selectedRequest.year && (
+{selectedRequest.year && (
                     <p className="text-sm text-on-surface-variant">
                       <strong>Year:</strong> {selectedRequest.year}
                     </p>
                   )}
-                </p>
+                </div>
                 <p className="text-sm text-on-surface-variant mb-4">
                   <strong>Description:</strong> {selectedRequest.description || 'No description provided'}
                 </p>
@@ -461,18 +461,19 @@ const PaperRequestPage = () => {
                     <select
                       className="input-glass w-full"
                       value={selectedRequest.status}
-                      onChange={(e) => {
-                        const updateData = { status: e.target.value };
-                        
-                        if (e.target.value === 'fulfilled') {
-                          updateData.fulfilled_at = new Date().toISOString();
-                          updateData.fulfilled_by = (await supabase.auth.getUser()).data.user?.id;
-                        } else if (e.target.value === 'rejected' || e.target.value === 'cancelled') {
-                          // Additional logic for rejected/cancelled
-                        }
-                        
-                        handleUpdateStatus(updateData);
-                      }}
+onChange={async (e) => {
+                         const updateData = { status: e.target.value };
+                         
+                         if (e.target.value === 'fulfilled') {
+                           updateData.fulfilled_at = new Date().toISOString();
+                           const { data: { user } } = await supabase.auth.getUser();
+                           updateData.fulfilled_by = user?.id;
+                         } else if (e.target.value === 'rejected' || e.target.value === 'cancelled') {
+                           // Additional logic for rejected/cancelled
+                         }
+                         
+                         handleUpdateStatus(updateData);
+                       }}
                     >
                       {RequestStatuses.map(status => (
                         <option key={status.value} value={status.value}>

@@ -547,41 +547,41 @@ const MessagesPage = () => {
               </div>
             )}
             
-            {/* Reply form (for non-admin users or when viewing own messages) */}
-            {!isAdminView || (selectedMessage && selectedMessage.user_id === user.id)} && (
-              <div className="mb-6">
-                <h3 className="text-lg font-semibold text-on-surface mb-4">
-                  Reply to Message
-                </h3>
-                <form onSubmit={(e) => {
-                  e.preventDefault();
-                  handleReply();
-                }} className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-on-surface mb-2">
-                      Your Response
-                    </label>
-                    <textarea
-                      className="input-glass w-full resize-none"
-                      rows={4}
-                      placeholder="Type your response..."
-                      value={replyText}
-                      onChange={(e) => setReplyText(e.target.value)}
-                      disabled={isReplying}
-                    />
-                  </div>
-                  <div className="flex justify-end">
-                    <button
-                      type="submit"
-                      disabled={isReplying || !replyText.trim()}
-                      className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {isReplying ? 'Sending...' : 'Send Reply'}
-                    </button>
-                  </div>
-                </form>
-              </div>
-            )}
+             {/* Reply form (for non-admin users or when viewing own messages) */}
+             {!isAdminView || (selectedMessage && selectedMessage.user_id === user.id)} && (
+               <div className="mb-6">
+                 <h3 className="text-lg font-semibold text-on-surface mb-4">
+                   Reply to Message
+                 </h3>
+                 <form onSubmit={(e) => {
+                   e.preventDefault();
+                   handleReply();
+                 }} className="space-y-4">
+                   <div>
+                     <label className="block text-sm font-medium text-on-surface mb-2">
+                       Your Response
+                     </label>
+                     <textarea
+                       className="input-glass w-full resize-none"
+                       rows={4}
+                       placeholder="Type your response..."
+                       value={replyText}
+                       onChange={(e) => setReplyText(e.target.value)}
+                       disabled={isReplying}
+                     />
+                   </div>
+                   <div className="flex justify-end">
+                     <button
+                       type="submit"
+                       disabled={isReplying || !replyText.trim()}
+                       className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
+                     >
+                       {isReplying ? 'Sending...' : 'Send Reply'}
+                     </button>
+                   </div>
+                 </form>
+               </div>
+             )
           </div>
         )}
       </div>
