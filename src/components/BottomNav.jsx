@@ -27,7 +27,7 @@ const BottomNav = () => {
 
   return (
     <nav
-      className="mobile-bottom-nav md:hidden fixed bottom-0 left-0 right-0 z-50 bg-surface-container/95 supports-[backdrop-filter]:bg-surface-container/85 backdrop-blur-xl border-t border-[color:var(--color-outline-variant)] pb-[env(safe-area-inset-bottom,0px)]"
+      className="mobile-bottom-nav md:hidden fixed bottom-0 left-0 right-0 z-50 bg-surface-container/95 supports-[backdrop-filter]:bg-surface-container/85 backdrop-blur-xl border-t border-[color:var(--border)] pb-[env(safe-area-inset-bottom,0px)]"
       aria-label="Main navigation"
     >
       <div className="flex items-stretch justify-around px-1 py-1">

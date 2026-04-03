@@ -30,6 +30,10 @@ export const uploadSchema = z.object({
     .optional()
     .default(''),
 
+  degree: z.enum(['BTech', 'BArch', 'BCA', 'MCA', 'MTech'], {
+    required_error: 'Degree is required'
+  }),
+
   branch: z
     .string()
     .min(1, 'Branch is required'),

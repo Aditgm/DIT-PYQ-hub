@@ -9,7 +9,7 @@ import {
 import { useAuth } from '../context/AuthContext'
 import toast from 'react-hot-toast'
 import { usePageTitle } from '../hooks/usePageTitle'
-import { supabase, BRANCHES, SEMESTERS, YEARS } from '../lib/supabase'
+import { supabase, BRANCHES, SEMESTERS, YEARS, DEGREES } from '../lib/supabase'
 import { uploadToCloudinary } from '../lib/cloudinary'
 import { getMimeTypeFromFile } from '../lib/fileType'
 import { isPaperFile } from '../lib/fileDetection'
@@ -394,33 +394,51 @@ const PaperUpload = () => {
                 <FieldError error={errors.title} id="title-error" />
               </div>
 
-              {/* Subject */}
-              <div>
-                <label htmlFor="subject" className="block text-sm font-medium text-on-surface mb-2">
-                  Subject *
-                </label>
-                <select
-                  id="subject"
-                  aria-invalid={!!errors.subject}
-                  aria-describedby={errors.subject ? 'subject-error' : undefined}
-                  className={`input-glass ${errors.subject ? 'border-red-500/50' : ''}`}
-                  {...register('subject')}
-                >
-                  <option value="">Select Subject</option>
-                  {subjects.map(sub => <option key={sub} value={sub}>{sub}</option>)}
-                </select>
-                {selectedSubject === 'Other' && (
-                  <input
-                    type="text"
-                    placeholder="Please specify your subject..."
-                    aria-invalid={!!errors.customSubject}
-                    aria-describedby={errors.customSubject ? 'customSubject-error' : undefined}
-                    className={`input-glass mt-2 ${errors.customSubject ? 'border-red-500/50' : ''}`}
-                    {...register('customSubject')}
-                  />
-                )}
-                <FieldError error={errors.subject || errors.customSubject} id="subject-error" />
-              </div>
+               {/* Subject */}
+               <div>
+                 <label htmlFor="subject" className="block text-sm font-medium text-on-surface mb-2">
+                   Subject *
+                 </label>
+                 <select
+                   id="subject"
+                   aria-invalid={!!errors.subject}
+                   aria-describedby={errors.subject ? 'subject-error' : undefined}
+                   className={`input-glass ${errors.subject ? 'border-red-500/50' : ''}`}
+                   {...register('subject')}
+                 >
+                   <option value="">Select Subject</option>
+                   {subjects.map(sub => <option key={sub} value={sub}>{sub}</option>)}
+                 </select>
+                 {selectedSubject === 'Other' && (
+                   <input
+                     type="text"
+                     placeholder="Please specify your subject..."
+                     aria-invalid={!!errors.customSubject}
+                     aria-describedby={errors.customSubject ? 'customSubject-error' : undefined}
+                     className={`input-glass mt-2 ${errors.customSubject ? 'border-red-500/50' : ''}`}
+                     {...register('customSubject')}
+                   />
+                 )}
+                 <FieldError error={errors.subject || errors.customSubject} id="subject-error" />
+               </div>
+
+               {/* Degree */}
+               <div>
+                 <label htmlFor="degree" className="block text-sm font-medium text-on-surface mb-2">
+                   Degree *
+                 </label>
+                 <select
+                   id="degree"
+                   aria-invalid={!!errors.degree}
+                   aria-describedby={errors.degree ? 'degree-error' : undefined}
+                   className={`input-glass ${errors.degree ? 'border-red-500/50' : ''}`}
+                   {...register('degree')}
+                 >
+                   <option value="">Select Degree</option>
+                   {DEGREES.map(deg => <option key={deg.value} value={deg.value}>{deg.label}</option>)}
+                 </select>
+                 <FieldError error={errors.degree} id="degree-error" />
+               </div>
 
               {/* Branch */}
               <div>

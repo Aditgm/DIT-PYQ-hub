@@ -67,6 +67,9 @@ function App() {
   const PaperUpload = lazy(() => import('./pages/PaperUpload'))
   const PaperBrowse = lazy(() => import('./pages/PaperBrowse'))
   const PaperDetail = lazy(() => import('./pages/PaperDetail'))
+  const MessagesPage = lazy(() => import('./pages/MessagesPage'))
+  const PaperRequestPage = lazy(() => import('./pages/PaperRequestPage'))
+  const NotificationsPage = lazy(() => import('./pages/NotificationsPage'))
   const NotFound = lazy(() => import('./pages/NotFound'))
 
   return (
@@ -86,24 +89,27 @@ function App() {
             </div>
           }>
             <AnimatedRoutes>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/login" element={<AuthPage />} />
-              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-              <Route path="/auth/callback" element={<AuthCallback />} />
-              <Route path="/select-role" element={<RoleSelectionPage />} />
-              <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
-              <Route path="/upload" element={<ProtectedRoute><PaperUpload /></ProtectedRoute>} />
-              <Route path="/browse" element={<PaperBrowse />} />
-              <Route path="/paper/:id" element={<PaperDetail />} />
-              <Route 
-                path="/admin" 
-                element={
-                  <AdminRoute>
-                    <AdminPanel />
-                  </AdminRoute>
-                } 
-              />
-              <Route path="*" element={<NotFound />} />
+<Route path="/" element={<HomePage />} />
+        <Route path="/login" element={<AuthPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/auth/callback" element={<AuthCallback />} />
+        <Route path="/select-role" element={<RoleSelectionPage />} />
+        <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+        <Route path="/upload" element={<ProtectedRoute><PaperUpload /></ProtectedRoute>} />
+        <Route path="/browse" element={<PaperBrowse />} />
+        <Route path="/paper/:id" element={<PaperDetail />} />
+        <Route path="/messages" element={<ProtectedRoute><MessagesPage /></ProtectedRoute>} />
+        <Route path="/request-paper" element={<ProtectedRoute><PaperRequestPage /></ProtectedRoute>} />
+        <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
+        <Route 
+          path="/admin" 
+          element={
+            <AdminRoute>
+              <AdminPanel />
+            </AdminRoute>
+          } 
+        />
+        <Route path="*" element={<NotFound />} />
             </AnimatedRoutes>
           </Suspense>
         </ErrorBoundary>

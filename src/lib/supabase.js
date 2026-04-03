@@ -31,7 +31,16 @@ export const PAPER_STATUS = {
 export const USER_ROLES = {
   STUDENT: 'student',
   ADMIN: 'admin'
-}
+};
+
+// Degree options for DIT University
+export const DEGREES = [
+  { value: 'BTech', label: 'Bachelor of Technology (BTech)' },
+  { value: 'BArch', label: 'Bachelor of Architecture (BArch)' },
+  { value: 'BCA', label: 'Bachelor of Computer Applications (BCA)' },
+  { value: 'MCA', label: 'Master of Computer Applications (MCA)' },
+  { value: 'MTech', label: 'Master of Technology (MTech)' }
+];
 
 // Branch options for DIT University
 export const BRANCHES = [

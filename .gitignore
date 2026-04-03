@@ -35,6 +35,12 @@ CHANGELOG.md
 VERIFICATION_PLAN.md
 VERCEL_IP_REMOVAL_GUIDE.md
 
+# Markdown files
+*.md
+!README.md
+!CONTRIBUTING.md
+!LICENSE
+
 # Local validation/testing artifacts
 server/tests/
 src/__tests__/
@@ -43,3 +49,8 @@ src/__tests__/
 
 # Local scratch files
 tmp_*.html
+
+# Test files
+**/*.test.js
+**/*.spec.js
+**/__tests__/

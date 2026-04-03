@@ -6,116 +6,28 @@
   .mobile-bottom-nav {
     box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.28);
   }
-:root {
-  --color-base: #070e1a;
-  --color-primary: #6dddff;
-  --color-primary-container: #00d2fd;
-  --color-on-primary: #070e1a;
-  --color-secondary: #d674ff;
-  --color-secondary-container: #b850ff;
-  --color-on-secondary: #070e1a;
-  --color-tertiary: #82a3ff;
-  --color-on-tertiary: #070e1a;
-  --color-surface: #070e1a;
-  --color-surface-low: #0c1321;
-  --color-surface-container: #111a28;
-  --color-surface-container-high: #162032;
-  --color-surface-container-highest: #1c2637;
-  --color-surface-variant: rgba(255, 255, 255, 0.1);
-  --color-on-surface: #e8eaed;
-  --color-on-surface-variant: #9aa0a6;
-  --color-outline-variant: rgba(65, 72, 86, 0.15);
-  /* Semantic colors - Dark */
-  --color-error: #ff6b6b;
-  --color-error-container: #ff5252;
-  --color-on-error: #ffffff;
-  --color-warning: #ffb74d;
-  --color-warning-container: #ffa726;
-  --color-on-warning: #000000;
-  --color-info: #4fc3f7;
-  --color-info-container: #29b6f6;
-  --color-on-info: #000000;
-  --color-success: #81c784;
-  --color-success-container: #66bb6a;
-  --color-on-success: #000000;
-  --mobile-bottom-nav-height: 64px;
-  --pwa-top-offset: 0px;
-  --pwa-bottom-offset: 0px;
-  --pwa-update-bg: #1e293b;
-  --pwa-update-border: #334155;
-  --pwa-update-accent: #6dddff;
-  --pwa-update-text: #f1f5f9;
-  --pwa-update-dismiss: #64748b;
-  --pwa-install-bg: linear-gradient(135deg, #0f172a, #1e293b);
-  --pwa-install-border: #334155;
-  --pwa-install-accent: #6dddff;
-  --pwa-install-text: #f1f5f9;
-  --pwa-install-cancel: #64748b;
-}
 
-/* Light Theme - High Contrast for Daylight */
-.light {
-  --color-base: #ffffff;
-  --color-primary: #0d6efd;
-  --color-primary-container: #0b5ed7;
-  --color-on-primary: #ffffff;
-  --color-secondary: #6c757d;
-  --color-secondary-container: #5a6268;
-  --color-on-secondary: #ffffff;
-  --color-tertiary: #198754;
-  --color-on-tertiary: #ffffff;
-  --color-surface: #f8f9fa;
-  --color-surface-low: #e9ecef;
-  --color-surface-container: #ffffff;
-  --color-surface-container-high: #f8f9fa;
-  --color-surface-container-highest: #e9ecef;
-  --color-surface-variant: rgba(0, 0, 0, 0.05);
-  --color-on-surface: #212529;
-  --color-on-surface-variant: #6c757d;
-  --color-outline-variant: #dee2e6;
-  /* Semantic colors - Light */
-  --color-error: #d32f2f;
-  --color-error-container: #f44336;
-  --color-on-error: #ffffff;
-  --color-warning: #f57c00;
-  --color-warning-container: #ff9800;
-  --color-on-warning: #ffffff;
-  --color-info: #1976d2;
-  --color-info-container: #2196f3;
-  --color-on-info: #ffffff;
-  --color-success: #388e3c;
-  --color-success-container: #4caf50;
-  --color-on-success: #ffffff;
-  --pwa-update-bg: #ffffff;
-  --pwa-update-border: #d7dee7;
-  --pwa-update-accent: #0d6efd;
-  --pwa-update-text: #1f2937;
-  --pwa-update-dismiss: #6b7280;
-  --pwa-install-bg: linear-gradient(135deg, #ffffff, #f3f6fb);
-  --pwa-install-border: #d7dee7;
-  --pwa-install-accent: #0d6efd;
-  --pwa-install-text: #1f2937;
-  --pwa-install-cancel: #6b7280;
-}
+
+
 
 @media (min-width: 768px) {
   :root {
     --mobile-bottom-nav-height: 0px;
   }
 }
-.light .mobile-bottom-nav {
-  background: rgba(255, 255, 255, 0.97);
+  .light .mobile-bottom-nav {
+  background: rgba(var(--bg-rgb), 0.97);
   border-color: rgba(0, 0, 0, 0.1);
   box-shadow: 0 -8px 20px rgba(0, 0, 0, 0.08);
 }
 
 .light .mobile-tab-active {
-  background: rgb(from var(--color-primary) r g b / 0.12);
+  background: rgb(from var(--primary) r g b / 0.12);
 }
 
 /* Light theme glass-morphism */
 .light .glass {
-  background: rgba(255, 255, 255, 0.72);
+  background: rgba(var(--bg-rgb), 0.72);
   backdrop-filter: blur(20px) saturate(1.4);
   -webkit-backdrop-filter: blur(20px) saturate(1.4);
   border-color: rgba(0, 0, 0, 0.06);
@@ -353,10 +265,10 @@ html.theme-transitioning *::after {
     min-height: 100vh;
   }
 
-  ::selection {
-    background-color: rgb(from var(--color-primary) r g b / 0.3);
-    color: var(--color-on-surface);
-  }
+::selection {
+  background-color: rgb(from var(--primary) r g b / 0.3);
+  color: var(--text-primary);
+}
 
   ::-webkit-scrollbar {
     width: 8px;
@@ -815,7 +727,7 @@ html.theme-transitioning *::after {
   width: 100%;
   height: 100%;
   min-height: 280px;
-  background: var(--color-surface-container);
+  background: var(--surface-container);
 }
 
 .pdfjs-toolbar {
