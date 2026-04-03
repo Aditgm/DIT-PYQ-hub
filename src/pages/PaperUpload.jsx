@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate, Link, useSearchParams } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { 
@@ -14,6 +14,7 @@ import { uploadToCloudinary } from '../lib/cloudinary'
 import { getMimeTypeFromFile } from '../lib/fileType'
 import { isPaperFile } from '../lib/fileDetection'
 import { celebratePaperUpload } from '../lib/confetti'
+import { formatBytes } from '../lib/utils'
 import Breadcrumb from '../components/Breadcrumb'
 import { uploadSchema, validateFile } from '../lib/uploadSchema'
 import ConfettiToggle from '../components/ConfettiToggle'
@@ -52,6 +53,7 @@ const PaperUpload = () => {
   const { user } = useAuth()
   usePageTitle('Upload Paper', 'Share previous year question papers with the DIT University community.')
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const fileInputRef = useRef(null)
   const firstErrorRef = useRef(null)
 
@@ -69,10 +71,10 @@ const PaperUpload = () => {
     reValidateMode: 'onChange',
     defaultValues: {
       title: '',
-      subject: '',
+      subject: searchParams.get('subject') || '',
       customSubject: '',
-      branch: '',
-      semester: '',
+      branch: searchParams.get('branch') || '',
+      semester: searchParams.get('semester') || '',
       examType: '',
       year: new Date().getFullYear(),
       description: '',
@@ -213,6 +215,12 @@ const PaperUpload = () => {
 
       setUploadProgress(100)
       setUploadStatus('success')
+      
+      // Reset form immediately for psychological closure
+      reset()
+      removeFile()
+      setUploadProgress(0)
+      
       toast.success('Paper uploaded!')
       
       if (isPaperFile(file)) {
@@ -220,9 +228,6 @@ const PaperUpload = () => {
       }
 
       setTimeout(() => {
-        reset()
-        removeFile()
-        setUploadProgress(0)
         setUploadStatus(null)
       }, 2000)
     } catch (error) {
@@ -302,7 +307,7 @@ const PaperUpload = () => {
         <form onSubmit={rhfHandleSubmit(onSubmit)} className="space-y-6" noValidate>
           {/* ── File Upload ──────────────────────────────────────── */}
           <div className="bg-surface-container shadow-card rounded-2xl p-6 border border-white/10">
-            <h2 className="text-lg font-semibold text-on-surface mb-4 flex items-center gap-2">
+            <h2 id="upload-heading" className="text-lg font-semibold text-on-surface mb-4 flex items-center gap-2">
               <Upload className="w-5 h-5 text-primary" aria-hidden="true" />
               Upload Document
             </h2>
@@ -316,7 +321,7 @@ const PaperUpload = () => {
                 onDrop={handleDrop}
                 role="button"
                 tabIndex={0}
-                aria-label="Click or drag and drop to upload a PDF or DOCX file, maximum 25 megabytes"
+                aria-labelledby="upload-heading upload-instructions"
                 aria-invalid={!!fileError}
                 aria-describedby={fileError ? 'file-error' : undefined}
                 onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') fileInputRef.current?.click() }}
@@ -329,7 +334,7 @@ const PaperUpload = () => {
                 <p className="text-on-surface font-medium mb-1">
                   {isDragging ? 'Drop your file here' : 'Click to upload or drag and drop'}
                 </p>
-                <p className="text-sm text-on-surface-variant">PDF or DOCX • Maximum 25MB</p>
+                <p id="upload-instructions" className="text-sm text-on-surface-variant">PDF or DOCX • Maximum 25MB</p>
               </div>
             ) : (
               <div className="flex items-center gap-4 p-4 bg-surface-container rounded-xl border border-primary/20">
@@ -341,8 +346,8 @@ const PaperUpload = () => {
                   </div>
                 )}
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-on-surface truncate">{file.name}</p>
-                  <p className="text-sm text-on-surface-variant">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                   <p className="font-medium text-on-surface truncate">{file.name}</p>
+                   <p className="text-sm text-on-surface-variant">{formatBytes(file.size)}</p>
                 </div>
                 <button type="button" onClick={removeFile} className="p-2 hover:bg-red-500/10 rounded-lg transition-colors flex-shrink-0" aria-label="Remove file">
                   <X className="w-5 h-5 text-red-400" />

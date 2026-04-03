@@ -84,7 +84,7 @@ function App() {
       <div className="flex-1">
         <ErrorBoundary>
           <Suspense fallback={
-            <div className="flex h-[200px] items-center justify-center">
+            <div className="flex min-h-[calc(100vh-80px)] items-center justify-center">
               <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gray-500"></div>
             </div>
           }>

@@ -466,7 +466,7 @@ const PaperBrowse = () => {
           {/* Filter Toggle */}
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg border border-white/10 text-on-surface-variant hover:bg-white/5 transition-colors"
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg border transition-colors ${Object.values(filters).some(Boolean) ? 'bg-primary/10 border-primary/30 text-primary' : 'border-white/10 text-on-surface-variant hover:bg-white/5'}`}
           >
             <Filter className="w-4 h-4" />
             Filters
@@ -793,7 +793,7 @@ const PaperBrowse = () => {
             ) : (
               <EmptyState
                 searchQuery={searchQuery}
-                onUpload={() => navigate('/upload')}
+                onUpload={() => navigate(`/upload?subject=${encodeURIComponent(filters.subject || searchQuery)}&branch=${encodeURIComponent(filters.branch)}&semester=${encodeURIComponent(filters.semester)}`)}
                 onClearFilters={clearFilters}
               />
             )}
