@@ -63,12 +63,12 @@ export default {
         'glass-lg': '20px',
       },
       boxShadow: {
-        'glow-primary': '0 0 40px rgba(109, 221, 255, 0.08)',
-        'glow-secondary': '0 0 40px rgba(214, 116, 255, 0.08)',
-        'glow-tertiary': '0 0 40px rgba(130, 163, 255, 0.08)',
-        'ambient': '0 40px 60px -10px rgba(0, 0, 0, 0.3)',
-        'card': '0 8px 32px -8px rgba(0, 0, 0, 0.4)',
-        'card-hover': '0 16px 48px -12px rgba(0, 0, 0, 0.5)',
+        'glow-primary': '0 0 45px rgba(203, 180, 137, 0.16)',
+        'glow-secondary': '0 0 45px rgba(200, 168, 166, 0.14)',
+        'glow-tertiary': '0 0 45px rgba(191, 181, 171, 0.14)',
+        'ambient': '0 42px 70px -18px rgba(0, 0, 0, 0.58)',
+        'card': '0 24px 56px -28px rgba(0, 0, 0, 0.72)',
+        'card-hover': '0 32px 72px -32px rgba(0, 0, 0, 0.82)',
       },
       backgroundImage: {
         'gradient-primary': 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-container) 100%)',
