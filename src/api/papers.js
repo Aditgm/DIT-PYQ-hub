@@ -235,3 +235,288 @@ export async function revokeDownloadToken(token, authToken) {
 
   return response.json();
 }
+
+/**
+ * Update paper metadata only (no file changes)
+ * @param {string} paperId - Paper UUID
+ * @param {Object} metadata - Metadata fields to update
+ * @param {string} editReason - Reason for the edit
+ * @param {number} expectedVersion - Current record version for optimistic locking
+ * @returns {Promise<Object>} Updated paper and version info
+ */
+export async function updatePaperMetadata(paperId, metadata, editReason, expectedVersion) {
+  const { data: currentPaper, error: fetchError } = await supabase
+    .from('papers')
+    .select('*')
+    .eq('id', paperId)
+    .single();
+
+  if (fetchError) throw fetchError;
+
+  if (currentPaper.record_version !== expectedVersion) {
+    throw new Error('Concurrent edit detected. This paper was modified by someone else.');
+  }
+
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  // Verify user is admin
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single();
+  
+  if (profile?.role !== 'admin') {
+    throw new Error('Not authorized to edit paper metadata');
+  }
+
+  const allowedFields = ['title', 'subject', 'degree', 'branch', 'semester', 'year', 'exam_type', 'description'];
+  const filteredMetadata = {};
+  
+  allowedFields.forEach(field => {
+    if (metadata[field] !== undefined) {
+      filteredMetadata[field] = metadata[field];
+    }
+  });
+  
+  if (profile?.role !== 'admin') {
+    throw new Error('Not authorized to edit paper metadata');
+  }
+
+  const { data: updatedPaper, error: updateError } = await supabase
+    .from('papers')
+    .update({
+      ...filteredMetadata,
+      last_edited_by: user.id
+    })
+    .eq('id', paperId)
+    .select()
+    .single();
+
+  if (updateError) throw updateError;
+
+  const nextVersion = (await supabase
+    .from('paper_versions')
+    .select('version_number')
+    .eq('paper_id', paperId)
+    .order('version_number', { ascending: false })
+    .limit(1)).data[0]?.version_number + 1 || 1;
+
+  const { error: versionError } = await supabase
+    .from('paper_versions')
+    .insert({
+      paper_id: paperId,
+      version_number: nextVersion,
+      metadata: filteredMetadata,
+      edited_by: user.id,
+      edit_reason: editReason,
+      change_type: 'post_upload_edit'
+    });
+
+  if (versionError) throw versionError;
+
+  await supabase.from('admin_audit_log').insert({
+    admin_id: user.id,
+    action: 'metadata_edit',
+    paper_id: paperId,
+    change_details: filteredMetadata,
+    previous_value: currentPaper,
+    new_value: updatedPaper
+  });
+
+  return {
+    success: true,
+    paper: updatedPaper,
+    version: {
+      version_number: nextVersion,
+      edited_at: new Date().toISOString(),
+      edited_by: user.id
+    }
+  };
+}
+
+/**
+ * Approve a paper with optional metadata changes
+ * @param {string} paperId - Paper UUID
+ * @param {Object} metadata - Optional metadata updates
+ * @param {string} approvalNote - Approval note
+ * @param {string} editReason - Reason for any metadata changes
+ * @param {number} expectedVersion - Current record version
+ * @returns {Promise<Object>} Approved paper data
+ */
+export async function approvePaper(paperId, metadata = {}, approvalNote = '', editReason = '', expectedVersion) {
+  const { data: currentPaper, error: fetchError } = await supabase
+    .from('papers')
+    .select('*')
+    .eq('id', paperId)
+    .single();
+
+  if (fetchError) throw fetchError;
+
+  if (currentPaper.record_version !== expectedVersion) {
+    throw new Error('Concurrent edit detected. This paper was modified by someone else.');
+  }
+
+  const { data: { user } } = await supabase.auth.getUser();
+
+  const allowedFields = ['title', 'subject', 'degree', 'branch', 'semester', 'year', 'exam_type', 'description'];
+  const filteredMetadata = {};
+  
+  allowedFields.forEach(field => {
+    if (metadata[field] !== undefined) {
+      filteredMetadata[field] = metadata[field];
+    }
+  });
+
+  const { data: approvedPaper, error: updateError } = await supabase
+    .from('papers')
+    .update({
+      ...filteredMetadata,
+      status: 'approved',
+      approved_by: user.id,
+      approved_at: new Date().toISOString(),
+      last_edited_by: user.id
+    })
+    .eq('id', paperId)
+    .select()
+    .single();
+
+  if (updateError) throw updateError;
+
+  if (Object.keys(filteredMetadata).length > 0) {
+    const nextVersion = (await supabase
+      .from('paper_versions')
+      .select('version_number')
+      .eq('paper_id', paperId)
+      .order('version_number', { ascending: false })
+      .limit(1)).data[0]?.version_number + 1 || 1;
+
+    await supabase.from('paper_versions').insert({
+      paper_id: paperId,
+      version_number: nextVersion,
+      metadata: filteredMetadata,
+      edited_by: user.id,
+      edit_reason: editReason || 'Metadata edited during approval',
+      change_type: 'approval_edit'
+    });
+  }
+
+  await supabase.from('admin_audit_log').insert({
+    admin_id: user.id,
+    action: 'approve_paper',
+    paper_id: paperId,
+    change_details: { status: 'approved', approvalNote, metadata }
+  });
+
+  return { success: true, paper: approvedPaper };
+}
+
+/**
+ * Reject a paper with optional metadata changes
+ * @param {string} paperId - Paper UUID
+ * @param {string} rejectionReason - Reason for rejection
+ * @param {Object} metadata - Optional metadata updates
+ * @param {number} expectedVersion - Current record version
+ * @returns {Promise<Object>} Rejected paper data
+ */
+export async function rejectPaper(paperId, rejectionReason, metadata = {}, expectedVersion) {
+  const { data: currentPaper, error: fetchError } = await supabase
+    .from('papers')
+    .select('*')
+    .eq('id', paperId)
+    .single();
+
+  if (fetchError) throw fetchError;
+
+  if (currentPaper.record_version !== expectedVersion) {
+    throw new Error('Concurrent edit detected. This paper was modified by someone else.');
+  }
+
+  const { data: { user } } = await supabase.auth.getUser();
+
+  const allowedFields = ['title', 'subject', 'degree', 'branch', 'semester', 'year', 'exam_type', 'description'];
+  const filteredMetadata = {};
+  
+  allowedFields.forEach(field => {
+    if (metadata[field] !== undefined) {
+      filteredMetadata[field] = metadata[field];
+    }
+  });
+
+  const { data: rejectedPaper, error: updateError } = await supabase
+    .from('papers')
+    .update({
+      ...filteredMetadata,
+      status: 'rejected',
+      rejection_reason: rejectionReason,
+      rejected_at: new Date().toISOString(),
+      last_edited_by: user.id
+    })
+    .eq('id', paperId)
+    .select()
+    .single();
+
+  if (updateError) throw updateError;
+
+  await supabase.from('admin_audit_log').insert({
+    admin_id: user.id,
+    action: 'reject_paper',
+    paper_id: paperId,
+    change_details: { status: 'rejected', rejectionReason, metadata }
+  });
+
+  return { success: true, paper: rejectedPaper };
+}
+
+/**
+ * Get complete version history for a paper
+ * @param {string} paperId - Paper UUID
+ * @returns {Promise<Array>} Version history with diffs
+ */
+export async function getPaperVersionHistory(paperId) {
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  // Verify user is admin
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single();
+  
+  if (profile?.role !== 'admin') {
+    throw new Error('Not authorized to view version history');
+  }
+
+  const { data: versions, error } = await supabase
+    .from('paper_versions')
+    .select(`
+      *,
+      profiles!edited_by(name, email)
+    `)
+    .eq('paper_id', paperId)
+    .order('version_number', { ascending: true });
+
+  if (error) throw error;
+
+  const versionsWithDiffs = versions.map((version, index) => {
+    if (index === 0) {
+      return { ...version, diff: null };
+    }
+    
+    const prevVersion = versions[index - 1];
+    const diff = {};
+    
+    Object.keys(version.metadata).forEach(key => {
+      if (JSON.stringify(version.metadata[key]) !== JSON.stringify(prevVersion.metadata[key])) {
+        diff[key] = {
+          old: prevVersion.metadata[key],
+          new: version.metadata[key]
+        };
+      }
+    });
+
+    return { ...version, diff };
+  });
+
+  return versionsWithDiffs;
+}

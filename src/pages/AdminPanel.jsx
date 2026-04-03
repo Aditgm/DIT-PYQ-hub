@@ -15,6 +15,8 @@ import { usePageTitle } from '../hooks/usePageTitle'
 import ConfirmDialog from '../components/ConfirmDialog'
 import IssuesQueue from '../features/issues/IssuesQueue'
 import { celebrateUploadApproval } from '../lib/confetti'
+import PaperMetadataEditor from '../components/PaperMetadataEditor'
+import PaperVersionHistory from '../components/PaperVersionHistory'
 
 // Statistics Card Component
 const StatCard = ({ title, value, icon: Icon, color, trend }) => (
@@ -37,7 +39,7 @@ const StatCard = ({ title, value, icon: Icon, color, trend }) => (
 )
 
 // Submission Card Component
-const SubmissionCard = ({ paper, onView, onApprove, onReject, onDelete, isAdmin, isDeleting }) => {
+const SubmissionCard = ({ paper, onView, onEdit, onApprove, onReject, onDelete, isAdmin, isDeleting }) => {
   const branch = BRANCHES.find(b => b.value === paper.branch)
   const statusColors = {
     pending: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
@@ -97,6 +99,15 @@ const SubmissionCard = ({ paper, onView, onApprove, onReject, onDelete, isAdmin,
               title="View Details"
             >
               <Eye className="w-4 h-4 text-on-surface-variant" />
+            </button>
+            <button 
+              onClick={() => onEdit(paper)}
+              className="p-2 rounded-lg hover:bg-surface-container-high transition-colors"
+              title="Edit Metadata"
+            >
+              <svg className="w-4 h-4 text-on-surface-variant" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
             </button>
             {paper.status === PAPER_STATUS.PENDING && (
               <>
@@ -472,6 +483,7 @@ const AdminPanel = () => {
     year: ''
   })
   const [selectedPaper, setSelectedPaper] = useState(null)
+  const [editingPaper, setEditingPaper] = useState(null)
   const [confirmDialog, setConfirmDialog] = useState({ open: false, type: null, paper: null })
   const [pagination, setPagination] = useState({ page: 1, limit: 10 })
   const [refreshKey, setRefreshKey] = useState(0)
@@ -627,6 +639,15 @@ const AdminPanel = () => {
     } finally {
       setDeletingId(null)
     }
+  }
+
+  const handleEditMetadata = (paper) => {
+    setEditingPaper(paper)
+  }
+
+  const handleEditSuccess = (message) => {
+    toast.success(message)
+    setRefreshKey(k => k + 1)
   }
 
   // Confirm dialog actions
@@ -852,6 +873,7 @@ const AdminPanel = () => {
                 key={paper.id}
                 paper={paper}
                 onView={setSelectedPaper}
+                onEdit={handleEditMetadata}
                 onApprove={openConfirmApprove}
                 onReject={openConfirmReject}
                 onDelete={openConfirmDelete}
@@ -904,6 +926,18 @@ const AdminPanel = () => {
           isAdmin={isAdmin}
           isDeleting={deletingId === selectedPaper.id}
         />
+      )}
+
+      {/* Metadata Edit Modal */}
+      {editingPaper && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <PaperMetadataEditor
+            paper={editingPaper}
+            mode="post_upload"
+            onClose={() => setEditingPaper(null)}
+            onSuccess={handleEditSuccess}
+          />
+        </div>
       )}
 
       {/* Confirm Dialog - Delete */}
