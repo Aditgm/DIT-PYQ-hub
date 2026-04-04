@@ -135,6 +135,7 @@ const PaperUpload = () => {
   useEffect(() => {
     if (!file) { setPdfThumbnail(null); return }
     let cancelled = false
+    let pdfInstance = null
     const generate = async () => {
       try {
         if (!window.pdfjsLib) {
@@ -150,19 +151,31 @@ const PaperUpload = () => {
         const pdfjsLib = window.pdfjsLib
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.worker.min.mjs'
         const pdf = await pdfjsLib.getDocument({ data: await file.arrayBuffer() }).promise
-        if (cancelled) return
+        pdfInstance = pdf
+        if (cancelled) {
+          pdf.destroy()
+          return
+        }
         const page = await pdf.getPage(1)
         const viewport = page.getViewport({ scale: 1.5 })
         const canvas = document.createElement('canvas')
         canvas.width = viewport.width
         canvas.height = viewport.height
-        await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise
+        const renderTask = page.render({ canvasContext: canvas.getContext('2d'), viewport })
+        await renderTask.promise
         if (!cancelled) setPdfThumbnail(canvas.toDataURL('image/jpeg', 0.8))
-        pdf.destroy()
+        // Cleanup render task and page resources
+        if (renderTask.cancel) renderTask.cancel()
+        if (page.cleanup) page.cleanup()
+        if (pdf.destroy) pdf.destroy()
+        pdfInstance = null
       } catch { if (!cancelled) setPdfThumbnail(null) }
     }
     generate()
-    return () => { cancelled = true }
+    return () => {
+      cancelled = true
+      if (pdfInstance?.destroy) pdfInstance.destroy()
+    }
   }, [file])
 
   // ── Focus first error on submit ────────────────────────────────
