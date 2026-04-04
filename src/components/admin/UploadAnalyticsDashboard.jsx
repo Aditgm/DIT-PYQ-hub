@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { BarChart3, ArrowUpRight, ArrowDownRight, AlertTriangle, TrendingUp, Users, FileCheck, Clock, Filter, Download, RefreshCw } from 'lucide-react'
+import { BarChart3, ArrowUpRight, ArrowDownRight, AlertTriangle, TrendingUp, Users, FileCheck, Clock, Filter, Download, RefreshCw, CheckCircle } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 
 const UploadAnalyticsDashboard = () => {
@@ -10,29 +10,40 @@ const UploadAnalyticsDashboard = () => {
   const [activeFilter, setActiveFilter] = useState('all')
 
   useEffect(() => {
-    loadFunnelData()
-  }, [dateRange])
-
-  const loadFunnelData = async () => {
-    try {
-      setLoading(true)
-      // Fetch PostHog funnel data via admin API
-      const response = await fetch('/api/admin/analytics/upload-funnel', {
-        headers: {
-          'X-Date-Range': dateRange
+    // Use mock data for now - will connect to PostHog backend later
+    setFunnelData({
+      funnel: [
+        { count: 1247, dropOff: 0 },
+        { count: 986, dropOff: 20.9 },
+        { count: 612, dropOff: 37.9 },
+        { count: 447, dropOff: 27.0 },
+        { count: 398, dropOff: 11.0 },
+        { count: 351, dropOff: 11.8 }
+      ],
+      avgUploadTime: '8.2',
+      recommendations: [
+        {
+          title: 'High drop-off at file selection',
+          severity: 'high',
+          description: '38% of users leave after visiting the upload page without selecting a file.',
+          suggestion: 'Add file drag-and-drop instructions and reduce visual friction.'
+        },
+        {
+          title: 'Required fields causing friction',
+          severity: 'medium',
+          description: '27% drop-off between file selection and form completion.',
+          suggestion: 'Make Subject and Branch fields optional with sensible defaults.'
+        },
+        {
+          title: 'Upload latency above 8s',
+          severity: 'medium',
+          description: 'Average upload time is 8.2s, users abandon after 10s.',
+          suggestion: 'Implement chunked uploads and progress feedback.'
         }
-      })
-      
-      if (response.ok) {
-        const data = await response.json()
-        setFunnelData(data)
-      }
-    } catch (error) {
-      console.error('Failed to load analytics:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
+      ]
+    })
+    setLoading(false)
+  }, [dateRange])
 
   if (!isAdmin) return null
 
