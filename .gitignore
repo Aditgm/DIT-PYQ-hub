@@ -54,3 +54,11 @@ tmp_*.html
 **/*.test.js
 **/*.spec.js
 **/__tests__/
+
+# SQL files
+*.sql
+supabase_migrations*.sql
+
+# Shell scripts
+*.sh
+*.bash
