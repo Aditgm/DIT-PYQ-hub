@@ -8,6 +8,8 @@ import { supabase, BRANCHES } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { getPreviewUrl, isPDF } from '../lib/fileType'
 import { initiateDownload, buildDownloadFileUrl } from '../api/papers'
+import { usePreviewCounter } from '../hooks/usePreviewCounter'
+import PreviewLimitGuard, { PreviewCounterBanner } from '../components/PreviewLimitGuard'
 import toast from 'react-hot-toast'
 import { usePageTitle } from '../hooks/usePageTitle'
 import FlagButton from '../features/issues/FlagButton'
@@ -26,6 +28,7 @@ const PaperDetail = () => {
   const [citationCopied, setCitationCopied] = useState(false)
   const [isStandaloneMobile, setIsStandaloneMobile] = useState(false)
   const [forcePdfJsFallback, setForcePdfJsFallback] = useState(false)
+  const { increment } = usePreviewCounter()
 
   usePageTitle(paper?.title || 'Paper Details', paper ? `View details, download, and cite: ${paper.title}` : 'View paper details and download options.')
 
@@ -72,6 +75,9 @@ const PaperDetail = () => {
         }
 
         setPaper(data)
+        
+        // Increment preview counter for anonymous users
+        increment()
 
         const { count } = await supabase
           .from('downloads')
@@ -306,7 +312,8 @@ const PaperDetail = () => {
   }
 
   return (
-    <div className="min-h-screen bg-surface">
+    <PreviewLimitGuard>
+      <div className="min-h-screen bg-surface">
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
         <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-secondary/5 rounded-full blur-3xl" />
@@ -347,9 +354,11 @@ const PaperDetail = () => {
             </div>
           </div>
 
-          {/* Paper Details Sidebar */}
-          <div className="space-y-6">
-            {/* Title & Actions */}
+            {/* Paper Details Sidebar */}
+            <div className="space-y-6">
+              <PreviewCounterBanner />
+              
+              {/* Title & Actions */}
             <div className="glass rounded-xl p-6 border border-white/5">
               <h1 className="text-2xl font-display font-bold text-on-surface mb-4">
                 {paper.title}
@@ -484,6 +493,7 @@ const PaperDetail = () => {
         </div>
       </div>
     </div>
+    </PreviewLimitGuard>
   )
 }
 
