@@ -1,7 +1,6 @@
-import React, { useState, useEffect, lazy, Suspense } from 'react'
-import { Navigate, useNavigate, Route } from 'react-router-dom'
+import React, { lazy, Suspense } from 'react'
+import { Route } from 'react-router-dom'
 import { useAuth } from './context/AuthContext'
-import { supabase } from './lib/supabase'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
 import OnboardingWizard from './components/OnboardingWizard'
 import AdminRoute from './components/AdminRoute'
@@ -13,48 +12,13 @@ import BottomNav from './components/BottomNav'
 import AnimatedRoutes from './components/AnimatedRoutes'
 import PWAManager from './pwa/PWAManager'
 
+import { useOnboarding } from './hooks/useOnboarding'
+
 // Main App
 function App() {
-  const { user, loading: authLoading } = useAuth()
-  const [showOnboarding, setShowOnboarding] = useState(false)
-  const [onboardingData, setOnboardingData] = useState(null)
-  const navigate = useNavigate()
   useKeyboardShortcuts()
-
-  // Check if user needs onboarding
-  useEffect(() => {
-    const checkOnboarding = async () => {
-      if (!user || authLoading) return
-      
-      try {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('branch, semester, onboarding_completed')
-          .eq('id', user.id)
-          .single()
-        
-        if (error) throw error
-        
-        // Show onboarding if not completed or no branch selected
-        if (!data?.onboarding_completed || !data?.branch) {
-          setShowOnboarding(true)
-        }
-      } catch (err) {
-        console.error('Error checking onboarding status:', err)
-      }
-    }
-    
-    checkOnboarding()
-  }, [user, authLoading])
-
-  const handleOnboardingClose = (data) => {
-    setShowOnboarding(false)
-    setOnboardingData(data)
-    // Optionally navigate to browse with filters
-    if (data?.branch && data?.semester) {
-      navigate(`/browse?branch=${data.branch}&semester=${data.semester}`)
-    }
-  }
+  const { showOnboarding, handleOnboardingClose } = useOnboarding()
+  const { user, loading: authLoading } = useAuth()
 
   // Lazy load page components
   const HomePage = lazy(() => import('./pages/HomePage'))
@@ -78,7 +42,6 @@ function App() {
       <OnboardingWizard 
         isOpen={showOnboarding} 
         onClose={handleOnboardingClose}
-        user={user}
       />
       <Header />
       <div className="flex-1">

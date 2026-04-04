@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react'
 import { X, ChevronRight, ChevronLeft, Check, BookOpen, GraduationCap, FileText, Loader2, Download } from 'lucide-react'
 import { supabase, BRANCHES } from '../lib/supabase'
+import { useAuth } from '../context/AuthContext'
 
-const OnboardingWizard = ({ isOpen, onClose, user }) => {
+const OnboardingWizard = ({ isOpen, onClose }) => {
+  const { user } = useAuth()
   const [step, setStep] = useState(1)
   const [selectedBranch, setSelectedBranch] = useState('')
   const [selectedSemester, setSelectedSemester] = useState('')
