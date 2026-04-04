@@ -28,14 +28,14 @@ const PaperDetail = () => {
   const [citationCopied, setCitationCopied] = useState(false)
   const [isStandaloneMobile, setIsStandaloneMobile] = useState(false)
   const [forcePdfJsFallback, setForcePdfJsFallback] = useState(false)
-  const { increment, canPreview } = usePreviewCounter()
+  const { tryPreview } = usePreviewCounter()
 
-  // Only increment counter after confirming user can preview
+  // Atomic check and increment on page load
   useEffect(() => {
-    if (paper && !loading && canPreview()) {
-      increment()
+    if (paper && !loading) {
+      tryPreview(`paper-detail:${paper.id}`)
     }
-  }, [paper, loading, canPreview, increment])
+  }, [paper, loading, tryPreview])
 
   usePageTitle(paper?.title || 'Paper Details', paper ? `View details, download, and cite: ${paper.title}` : 'View paper details and download options.')
 

@@ -14,6 +14,7 @@ import { useBrowsePapers } from '../lib/queries'
 import { initiateDownload, buildDownloadFileUrl } from '../api/papers'
 import toast from 'react-hot-toast'
 import { usePageTitle } from '../hooks/usePageTitle'
+import { usePreviewCounter } from '../hooks/usePreviewCounter'
 import SearchAutocomplete from '../components/SearchAutocomplete'
 import TiltCard from '../components/TiltCard'
 import PDFPreviewModal from '../components/PDFPreviewModal'
@@ -54,6 +55,13 @@ const PaperBrowse = () => {
   const [showFilters, setShowFilters] = useState(false)
   const [previewPaper, setPreviewPaper] = useState(null)
   const [copiedId, setCopiedId] = useState(null)
+  const {
+    canPreview,
+    tryPreview,
+    limitReached: previewLimitReached,
+    loading: previewCounterLoading,
+    resetInHours
+  } = usePreviewCounter()
 
   const browseParams = useMemo(() => ({
     currentPage,
@@ -218,6 +226,18 @@ const PaperBrowse = () => {
     setCurrentPage(1)
     updatePageInUrl(1, size)
   }
+
+  const openPreview = useCallback((paper) => {
+    if (previewCounterLoading || !paper) return
+    
+    // Atomic check and increment
+    if (!tryPreview(paper.id)) {
+      toast.error('Preview limit reached. Sign in for unlimited access.')
+      return
+    }
+
+    setPreviewPaper(paper)
+  }, [tryPreview, previewCounterLoading])
   
   const branches = BRANCHES
   const semesters = SEMESTERS
@@ -500,6 +520,9 @@ const PaperBrowse = () => {
     }
   }
 
+  const previewActionDisabled = !user && previewLimitReached
+  const previewActionTitle = previewActionDisabled ? 'Login to use preview' : 'Preview paper'
+
   return (
     <div className="min-h-screen bg-base">
       {/* Page Header */}
@@ -697,6 +720,27 @@ const PaperBrowse = () => {
           </div>
         ) : (
           <>
+            {previewActionDisabled && (
+              <div className="mb-6 rounded-2xl border border-primary/20 bg-primary/10 px-5 py-4">
+                <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                  <div>
+                    <p className="text-sm font-semibold text-on-surface">Preview limit reached</p>
+                    <p className="text-sm text-on-surface-variant">
+                      Login to use preview again. Your guest preview limit resets in {resetInHours} hour{resetInHours !== 1 ? 's' : ''}.
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap gap-3">
+                    <Link to="/login" className="btn-primary">
+                      Login
+                    </Link>
+                    <Link to="/select-role" className="btn-secondary">
+                      Create account
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Section Title */}
             <h2 className="text-2xl font-bold text-on-surface mb-6">
               {searchQuery || filters.subject ? 'Search Results' : 'All Papers'}
@@ -774,9 +818,10 @@ const PaperBrowse = () => {
                             onShareSuccess={() => toast.success('Link copied!')}
                           />
                           <button 
-                            onClick={() => setPreviewPaper(paper)}
-                            className="text-tertiary hover:text-tertiary/80 text-sm font-medium transition-colors flex items-center gap-1"
-                            title="Preview paper"
+                            onClick={() => openPreview(paper)}
+                            disabled={previewActionDisabled}
+                            className="text-tertiary hover:text-tertiary/80 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 flex items-center gap-1"
+                            title={previewActionTitle}
                           >
                             <Eye className="w-4 h-4" />
                             Preview
@@ -881,7 +926,10 @@ const PaperBrowse = () => {
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                       {recommendedPapers.map((paper) => (
-                        <TiltCard key={paper.id} className="bg-surface-container rounded-xl p-5 cursor-pointer hover:translate-y-[-4px] transition-transform duration-300">
+                        <TiltCard
+                          key={paper.id}
+                          className={`bg-surface-container rounded-xl p-5 transition-transform duration-300 ${previewActionDisabled ? 'cursor-not-allowed' : 'cursor-pointer hover:translate-y-[-4px]'}`}
+                        >
                           {(() => {
                             const fileType = getFileTypeMeta(paper)
                             return (
@@ -893,8 +941,8 @@ const PaperBrowse = () => {
                             )
                           })()}
                           <div 
-                            onClick={() => setPreviewPaper(paper)}
-                            className="space-y-3"
+                            onClick={() => openPreview(paper)}
+                            className={`space-y-3 ${previewActionDisabled ? 'cursor-not-allowed opacity-80' : ''}`}
                           >
                             <div className="flex items-start justify-between gap-2">
                               <span className="px-2 py-1 text-xs font-medium rounded-md bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
@@ -913,7 +961,9 @@ const PaperBrowse = () => {
                               <span>{paper.year}</span>
                             </div>
                             <div className="flex items-center justify-between pt-2">
-                              <span className="text-xs text-on-surface-variant">{paper.exam_type}</span>
+                              <span className="text-xs text-on-surface-variant">
+                                {previewActionDisabled ? 'Login to use preview' : paper.exam_type}
+                              </span>
                                {downloadingIds.has(paper.id) ? (
                                 <Loader2 className="w-4 h-4 text-cyan-400 animate-spin" />
                               ) : (
@@ -946,7 +996,10 @@ const PaperBrowse = () => {
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                       {popularPapers.map((paper) => (
-                        <TiltCard key={paper.id} className="bg-surface-container rounded-xl p-5 cursor-pointer hover:translate-y-[-4px] transition-transform duration-300">
+                        <TiltCard
+                          key={paper.id}
+                          className={`bg-surface-container rounded-xl p-5 transition-transform duration-300 ${previewActionDisabled ? 'cursor-not-allowed' : 'cursor-pointer hover:translate-y-[-4px]'}`}
+                        >
                           {(() => {
                             const fileType = getFileTypeMeta(paper)
                             return (
@@ -958,8 +1011,8 @@ const PaperBrowse = () => {
                             )
                           })()}
                           <div 
-                            onClick={() => setPreviewPaper(paper)}
-                            className="space-y-3"
+                            onClick={() => openPreview(paper)}
+                            className={`space-y-3 ${previewActionDisabled ? 'cursor-not-allowed opacity-80' : ''}`}
                           >
                             <div className="flex items-start justify-between gap-2">
                               <span className="px-2 py-1 text-xs font-medium rounded-md bg-purple-500/10 text-purple-400 border border-purple-500/20">
@@ -978,7 +1031,9 @@ const PaperBrowse = () => {
                               <span>{paper.year}</span>
                             </div>
                             <div className="flex items-center justify-between pt-2">
-                              <span className="text-xs text-on-surface-variant">{paper.exam_type}</span>
+                              <span className="text-xs text-on-surface-variant">
+                                {previewActionDisabled ? 'Login to use preview' : paper.exam_type}
+                              </span>
                                {downloadingIds.has(paper.id) ? (
                                 <Loader2 className="w-4 h-4 text-purple-400 animate-spin" />
                               ) : (

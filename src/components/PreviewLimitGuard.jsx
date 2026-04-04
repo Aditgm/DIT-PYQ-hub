@@ -1,14 +1,15 @@
-import React, { useState } from 'react'
+import React from 'react'
+import { Link } from 'react-router-dom'
 import { usePreviewCounter } from '../hooks/usePreviewCounter'
 import { useAuth } from '../context/AuthContext'
 import { Lock } from 'lucide-react'
 
 const PreviewLimitGuard = ({ children }) => {
-  const { canPreview, remaining, limit, resetInHours } = usePreviewCounter()
-  const { user, loading: authLoading } = useAuth()
+  const { canPreview, limit, resetInHours, loading } = usePreviewCounter()
+  const { user } = useAuth()
 
-  // Wait for auth to initialize before making limit decisions
-  if (authLoading) {
+  // Wait for preview counter to initialize before making limit decisions
+  if (loading) {
     return null
   }
 
@@ -38,22 +39,22 @@ const PreviewLimitGuard = ({ children }) => {
         </p>
 
         <p className="text-sm text-on-surface-variant mb-6">
-          Limit resets in {resetInHours} hour{resetInHours !== 1 ? 's' : ''}.
+          Login to use preview again, or wait {resetInHours} hour{resetInHours !== 1 ? 's' : ''} for the guest limit to reset.
         </p>
 
         <div className="flex flex-col gap-3">
-          <a 
-            href="/login" 
+          <Link
+            to="/login"
             className="btn-primary text-center"
           >
-            Sign in for unlimited access
-          </a>
-          <a 
-            href="/select-role" 
+            Login to continue
+          </Link>
+          <Link
+            to="/select-role"
             className="btn-secondary text-center"
           >
             Create free account
-          </a>
+          </Link>
         </div>
       </div>
     </div>
