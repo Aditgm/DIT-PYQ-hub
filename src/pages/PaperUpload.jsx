@@ -61,7 +61,7 @@ const PaperUpload = () => {
   const {
     register,
     handleSubmit: rhfHandleSubmit,
-    formState: { errors, isValid, isSubmitted },
+    formState: { errors, isValid, isSubmitted, isSubmitting },
     reset,
     watch,
     setFocus,
@@ -87,7 +87,7 @@ const PaperUpload = () => {
   const [file, setFile] = useState(null)
   const [fileError, setFileError] = useState(null)
   const [uploadProgress, setUploadProgress] = useState(0)
-  const [isUploading, setIsUploading] = useState(false)
+
   const [uploadStatus, setUploadStatus] = useState(null)
   const [isDragging, setIsDragging] = useState(false)
   const [pdfThumbnail, setPdfThumbnail] = useState(null)
@@ -193,7 +193,6 @@ const PaperUpload = () => {
       return
     }
 
-    setIsUploading(true)
     setUploadProgress(0)
     setUploadStatus(null)
 
@@ -249,7 +248,7 @@ const PaperUpload = () => {
       setFileError(error.message || 'Upload failed')
       toast.error(error.message || 'Upload failed. Please try again.')
     } finally {
-      setIsUploading(false)
+      // isSubmitting handled natively by react-hook-form
     }
   }
 
@@ -370,7 +369,7 @@ const PaperUpload = () => {
 
             {fileError && <FieldError error={{ message: fileError }} id="file-error" />}
 
-            {isUploading && (
+             {isSubmitting && (
               <div className="mt-4">
                 <div className="flex justify-between text-sm mb-1">
                   <span className="text-on-surface-variant">Uploading...</span>
@@ -555,13 +554,13 @@ const PaperUpload = () => {
             <button type="button" onClick={() => navigate(-1)} className="btn-secondary">
               Cancel
             </button>
-            <button
-              type="submit"
-              disabled={isUploading}
-              className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isUploading ? 'Uploading...' : 'Submit Paper'}
-            </button>
+             <button
+               type="submit"
+               disabled={isSubmitting}
+               className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
+             >
+               {isSubmitting ? 'Uploading...' : 'Submit Paper'}
+             </button>
           </div>
         </form>
 
