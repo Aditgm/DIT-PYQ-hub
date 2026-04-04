@@ -31,7 +31,7 @@ const PaperBrowse = () => {
 
 
   const [loading, setLoading] = useState(true)
-  const [downloadingId, setDownloadingId] = useState(null)
+  const [downloadingIds, setDownloadingIds] = useState(new Set())
   
   // Get subject from URL query parameter
   const subjectParam = searchParams.get('subject') || ''
@@ -279,7 +279,7 @@ const PaperBrowse = () => {
     }
     
     try {
-      setDownloadingId(paper.id)
+      setDownloadingIds(prev => new Set([...prev, paper.id]))
 
       const { data: { session } } = await supabase.auth.getSession()
       let authToken = session?.access_token
@@ -385,7 +385,11 @@ const PaperBrowse = () => {
         toast.error(err.message || 'Download failed')
       }
     } finally {
-      setDownloadingId(null)
+      setDownloadingIds(prev => {
+        const next = new Set(prev)
+        next.delete(paper.id)
+        return next
+      })
     }
   }
   
@@ -728,12 +732,12 @@ const PaperBrowse = () => {
                             <Eye className="w-4 h-4" />
                             Preview
                           </button>
-                          <button 
+                           <button 
                             onClick={() => handleDownload(paper)}
-                            disabled={downloadingId === paper.id}
+                            disabled={downloadingIds.has(paper.id)}
                             className="text-primary hover:text-primary/80 text-sm font-medium transition-colors disabled:opacity-50 flex items-center gap-1"
                           >
-                            {downloadingId === paper.id ? (
+                            {downloadingIds.has(paper.id) ? (
                               <>
                                 <Loader2 className="w-4 h-4 animate-spin" />
                                 Downloading...
@@ -861,17 +865,21 @@ const PaperBrowse = () => {
                             </div>
                             <div className="flex items-center justify-between pt-2">
                               <span className="text-xs text-on-surface-variant">{paper.exam_type}</span>
-                              <Download 
-                                className="w-4 h-4 text-cyan-400 hover:text-cyan-300 transition-colors" 
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  handleDownload({
-                                    id: paper.id,
-                                    fileUrl: paper.file_url,
-                                    title: paper.title
-                                  })
-                                }}
-                              />
+                               {downloadingIds.has(paper.id) ? (
+                                <Loader2 className="w-4 h-4 text-cyan-400 animate-spin" />
+                              ) : (
+                                <Download 
+                                  className="w-4 h-4 text-cyan-400 hover:text-cyan-300 transition-colors" 
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    handleDownload({
+                                      id: paper.id,
+                                      fileUrl: paper.file_url,
+                                      title: paper.title
+                                    })
+                                  }}
+                                />
+                              )}
                             </div>
                           </div>
                         </TiltCard>
@@ -922,17 +930,21 @@ const PaperBrowse = () => {
                             </div>
                             <div className="flex items-center justify-between pt-2">
                               <span className="text-xs text-on-surface-variant">{paper.exam_type}</span>
-                              <Download 
-                                className="w-4 h-4 text-purple-400 hover:text-purple-300 transition-colors" 
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  handleDownload({
-                                    id: paper.id,
-                                    fileUrl: paper.file_url,
-                                    title: paper.title
-                                  })
-                                }}
-                              />
+                               {downloadingIds.has(paper.id) ? (
+                                <Loader2 className="w-4 h-4 text-purple-400 animate-spin" />
+                              ) : (
+                                <Download 
+                                  className="w-4 h-4 text-purple-400 hover:text-purple-300 transition-colors" 
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    handleDownload({
+                                      id: paper.id,
+                                      fileUrl: paper.file_url,
+                                      title: paper.title
+                                    })
+                                  }}
+                                />
+                              )}
                             </div>
                           </div>
                         </TiltCard>
