@@ -18,45 +18,41 @@ const PreviewLimitGuard = ({ children }) => {
     return children
   }
 
-  // Limit reached - show modal
+  // Limit reached - show modal ONLY, do not render children
   return (
-    <>
-      <div 
-        className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
-        onClick={() => setShowLimitModal(true)}
-      >
-        <div className="bg-surface-container rounded-xl p-6 max-w-md w-full border border-white/10">
-          <div className="flex items-center gap-3 mb-4">
-            <Lock className="w-6 h-6 text-on-surface-variant" />
-            <h3 className="text-lg font-semibold text-on-surface">Preview limit reached</h3>
-          </div>
-          
-          <p className="text-on-surface-variant mb-4">
-            You have viewed all {limit} available free previews.
-          </p>
+    <div 
+      className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+    >
+      <div className="bg-surface-container rounded-xl p-6 max-w-md w-full border border-white/10">
+        <div className="flex items-center gap-3 mb-4">
+          <Lock className="w-6 h-6 text-on-surface-variant" />
+          <h3 className="text-lg font-semibold text-on-surface">Preview limit reached</h3>
+        </div>
+        
+        <p className="text-on-surface-variant mb-4">
+          You have viewed all {limit} available free previews.
+        </p>
 
-          <p className="text-sm text-on-surface-variant mb-6">
-            Limit resets in {resetInHours} hour{resetInHours !== 1 ? 's' : ''}.
-          </p>
+        <p className="text-sm text-on-surface-variant mb-6">
+          Limit resets in {resetInHours} hour{resetInHours !== 1 ? 's' : ''}.
+        </p>
 
-          <div className="flex flex-col gap-3">
-            <a 
-              href="/login" 
-              className="btn-primary text-center"
-            >
-              Sign in for unlimited access
-            </a>
-            <a 
-              href="/select-role" 
-              className="btn-secondary text-center"
-            >
-              Create free account
-            </a>
-          </div>
+        <div className="flex flex-col gap-3">
+          <a 
+            href="/login" 
+            className="btn-primary text-center"
+          >
+            Sign in for unlimited access
+          </a>
+          <a 
+            href="/select-role" 
+            className="btn-secondary text-center"
+          >
+            Create free account
+          </a>
         </div>
       </div>
-      {children}
-    </>
+    </div>
   )
 }
 

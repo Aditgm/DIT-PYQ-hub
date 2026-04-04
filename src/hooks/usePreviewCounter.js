@@ -43,7 +43,7 @@ export function usePreviewCounter() {
     return counter.count < PREVIEW_LIMIT
   }, [user, counter.count])
 
-  // Increment preview counter
+  // Increment preview counter - only if limit not reached
   const increment = useCallback(() => {
     if (user) return // Don't count for authenticated users
     
@@ -52,6 +52,12 @@ export function usePreviewCounter() {
       if (Date.now() - prev.windowStart > 24 * 60 * 60 * 1000) {
         return { count: 1, windowStart: Date.now() }
       }
+      
+      // Don't increment if already at limit
+      if (prev.count >= PREVIEW_LIMIT) {
+        return prev
+      }
+      
       return { ...prev, count: prev.count + 1 }
     })
   }, [user])
@@ -71,6 +77,6 @@ export function usePreviewCounter() {
     increment,
     resetInMs,
     resetInHours,
-    isAuthenticated: !!user
+    isAuthenticated: !!user && !!user.id
   }
 }
