@@ -38,16 +38,17 @@ const PaperBrowse = () => {
   const pageParam = parseInt(searchParams.get('page')) || 1
   const pageSizeParam = parseInt(searchParams.get('pageSize')) || 20
   
-  const [searchQuery, setSearchQuery] = useState('')
+  // Initialize state directly from URL params
+  const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '')
   const [filters, setFilters] = useState({
-    subject: subjectParam,
-    branch: '',
-    semester: '',
-    year: '',
-    examType: ''
+    subject: searchParams.get('subject') || '',
+    branch: searchParams.get('branch') || '',
+    semester: searchParams.get('semester') || '',
+    year: searchParams.get('year') || '',
+    examType: searchParams.get('examType') || ''
   })
-  const [sortBy, setSortBy] = useState('downloads')
-  const [sortOrder, setSortOrder] = useState('desc')
+  const [sortBy, setSortBy] = useState(searchParams.get('sortBy') || 'downloads')
+  const [sortOrder, setSortOrder] = useState(searchParams.get('sortOrder') || 'desc')
   const [currentPage, setCurrentPage] = useState(pageParam)
   const [itemsPerPage, setItemsPerPage] = useState(pageSizeParam)
   const [showFilters, setShowFilters] = useState(false)
@@ -69,6 +70,54 @@ const PaperBrowse = () => {
   const subjects = browseData?.subjects || []
   const totalCount = browseData?.totalCount || 0
   const downloadCounts = browseData?.downloadCounts || {}
+
+  // Sync all state to URL params whenever filters/sort/page change
+  useEffect(() => {
+    const next = new URLSearchParams(searchParams)
+    
+    // Search query
+    if (searchQuery) {
+      next.set('q', searchQuery)
+    } else {
+      next.delete('q')
+    }
+    
+    // Filters
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value) {
+        next.set(key, value)
+      } else {
+        next.delete(key)
+      }
+    })
+    
+    // Sort
+    if (sortBy !== 'downloads') {
+      next.set('sortBy', sortBy)
+    } else {
+      next.delete('sortBy')
+    }
+    
+    if (sortOrder !== 'desc') {
+      next.set('sortOrder', sortOrder)
+    } else {
+      next.delete('sortOrder')
+    }
+    
+    // Page and pageSize handled in updatePageInUrl
+    setSearchParams(next, { replace: true })
+  }, [searchQuery, filters, sortBy, sortOrder, setSearchParams])
+  
+  // Sync initial params from URL on mount
+  useEffect(() => {
+    const q = searchParams.get('q')
+    const sortByParam = searchParams.get('sortBy')
+    const sortOrderParam = searchParams.get('sortOrder')
+    
+    if (q) setSearchQuery(q)
+    if (sortByParam) setSortBy(sortByParam)
+    if (sortOrderParam) setSortOrder(sortOrderParam)
+  }, [])
 
   useEffect(() => {
     setLoading(browseLoading)
