@@ -20,6 +20,7 @@
     "framer-motion": "^12.38.0",
     "lucide-react": "^0.577.0",
     "pdfjs-dist": "^5.5.207",
+    "posthog-js": "^1.364.7",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-hook-form": "^7.72.0",

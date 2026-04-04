@@ -18,6 +18,17 @@ import { formatBytes } from '../lib/utils'
 import Breadcrumb from '../components/Breadcrumb'
 import { uploadSchema, validateFile } from '../lib/uploadSchema'
 import ConfettiToggle from '../components/ConfettiToggle'
+import { 
+  trackUploadPageVisit, 
+  trackUploadFormView,
+  trackFileSelected,
+  trackFieldFocused,
+  trackFieldFilled,
+  trackValidationError,
+  trackSubmitAttempt,
+  trackSubmitSuccess,
+  trackUploadFailed
+} from '../lib/analytics'
 
 const subjects = [
   'Data Structures & Algorithms',
@@ -56,6 +67,12 @@ const PaperUpload = () => {
   const [searchParams] = useSearchParams()
   const fileInputRef = useRef(null)
   const firstErrorRef = useRef(null)
+  const uploadStartTime = useRef(null)
+
+  useEffect(() => {
+    trackUploadPageVisit()
+    trackUploadFormView()
+  }, [])
 
   // ── React Hook Form setup ──────────────────────────────────────
   const {
@@ -103,6 +120,7 @@ const PaperUpload = () => {
     }
     setFile(selectedFile)
     setFileError(null)
+    trackFileSelected(selectedFile.size, selectedFile.type)
     return true
   }, [])
 
@@ -195,6 +213,8 @@ const PaperUpload = () => {
 
     setUploadProgress(0)
     setUploadStatus(null)
+    uploadStartTime.current = Date.now()
+    trackSubmitAttempt()
 
     try {
       const { url: fileUrl, publicId } = await uploadToCloudinary(
@@ -228,6 +248,8 @@ const PaperUpload = () => {
       setUploadProgress(100)
       setUploadStatus('success')
       
+      trackSubmitSuccess(newPaper?.id || null, Date.now() - uploadStartTime.current)
+      
       // Reset form immediately for psychological closure
       reset()
       removeFile()
@@ -247,6 +269,7 @@ const PaperUpload = () => {
       setUploadStatus('error')
       setFileError(error.message || 'Upload failed')
       toast.error(error.message || 'Upload failed. Please try again.')
+      trackUploadFailed(error, Date.now() - uploadStartTime.current)
     } finally {
       // isSubmitting handled natively by react-hook-form
     }

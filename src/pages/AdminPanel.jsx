@@ -18,6 +18,7 @@ import IssuesQueue from '../features/issues/IssuesQueue'
 import { celebrateUploadApproval } from '../lib/confetti'
 import PaperMetadataEditor from '../components/PaperMetadataEditor'
 import PaperVersionHistory from '../components/PaperVersionHistory'
+import UploadAnalyticsDashboard from '../components/admin/UploadAnalyticsDashboard'
 
 // Statistics Card Component
 const StatCard = ({ title, value, icon: Icon, color, trend }) => (
@@ -723,6 +724,7 @@ const AdminPanel = () => {
     { id: 'approved', label: 'Approved', count: stats.approved, icon: CheckCircle },
     { id: 'rejected', label: 'Rejected', count: stats.rejected, icon: XCircle },
     { id: 'issues', label: 'Issues', count: null, icon: Flag },
+    { id: 'analytics', label: 'Analytics', count: null, icon: BarChart3 },
   ]
 
   if (authLoading) {
@@ -796,6 +798,8 @@ const AdminPanel = () => {
         {/* Content */}
         {activeTab === 'issues' ? (
           <IssuesQueue />
+        ) : activeTab === 'analytics' ? (
+          <UploadAnalyticsDashboard />
         ) : (
           <>
         {/* Filters */}
