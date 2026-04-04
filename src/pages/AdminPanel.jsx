@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { 
   FileText, CheckCircle, XCircle, Clock, Search, 
   Filter, Download, Eye, Trash2, ChevronLeft, ChevronRight,
@@ -466,6 +467,7 @@ const ConfirmDeleteDialog = ({ paper, onConfirm, onCancel, isDeleting }) => {
 // Main Admin Panel
 const AdminPanel = () => {
   const { user, signOut, isAdmin, loading: authLoading } = useAuth()
+  const queryClient = useQueryClient()
   usePageTitle('Admin Panel', 'Manage paper submissions, approve or reject uploads, and view analytics.')
   const [papers, setPapers] = useState([])
   const [stats, setStats] = useState({
@@ -583,6 +585,10 @@ const AdminPanel = () => {
 
       toast.success('Approved!')
       celebrateUploadApproval()
+      // Invalidate all public and admin queries
+      queryClient.invalidateQueries({ queryKey: ['browsePapers'] })
+      queryClient.invalidateQueries({ queryKey: ['popularSubjects'] })
+      queryClient.invalidateQueries({ queryKey: ['homeStats'] })
       setRefreshKey(k => k + 1)
       setSelectedPaper(null)
     } catch (error) {
@@ -605,6 +611,10 @@ const AdminPanel = () => {
       if (error) throw error
 
       toast('Paper rejected')
+      // Invalidate all public and admin queries
+      queryClient.invalidateQueries({ queryKey: ['browsePapers'] })
+      queryClient.invalidateQueries({ queryKey: ['popularSubjects'] })
+      queryClient.invalidateQueries({ queryKey: ['homeStats'] })
       setRefreshKey(k => k + 1)
       setSelectedPaper(null)
     } catch (error) {
@@ -622,6 +632,11 @@ const AdminPanel = () => {
 
       // Invalidate homepage subject cache so user-facing side reflects deletion
       sessionStorage.removeItem('homepage_popular_subjects')
+      
+      // Invalidate all public and admin queries
+      queryClient.invalidateQueries({ queryKey: ['browsePapers'] })
+      queryClient.invalidateQueries({ queryKey: ['popularSubjects'] })
+      queryClient.invalidateQueries({ queryKey: ['homeStats'] })
 
       toast.success('Paper deleted')
       setSelectedPaper(null)
