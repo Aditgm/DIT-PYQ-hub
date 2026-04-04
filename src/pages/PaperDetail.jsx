@@ -28,7 +28,14 @@ const PaperDetail = () => {
   const [citationCopied, setCitationCopied] = useState(false)
   const [isStandaloneMobile, setIsStandaloneMobile] = useState(false)
   const [forcePdfJsFallback, setForcePdfJsFallback] = useState(false)
-  const { increment } = usePreviewCounter()
+  const { increment, canPreview } = usePreviewCounter()
+
+  // Only increment counter after confirming user can preview
+  useEffect(() => {
+    if (paper && !loading && canPreview()) {
+      increment()
+    }
+  }, [paper, loading, canPreview, increment])
 
   usePageTitle(paper?.title || 'Paper Details', paper ? `View details, download, and cite: ${paper.title}` : 'View paper details and download options.')
 
@@ -75,9 +82,6 @@ const PaperDetail = () => {
         }
 
         setPaper(data)
-        
-        // Increment preview counter for anonymous users
-        increment()
 
         const { count } = await supabase
           .from('downloads')

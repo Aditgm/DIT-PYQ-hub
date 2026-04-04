@@ -5,11 +5,14 @@ const PREVIEW_LIMIT = 5
 const STORAGE_KEY = 'preview_counter'
 
 export function usePreviewCounter() {
-  const { user } = useAuth()
+  const { user, loading: authLoading } = useAuth()
   const [counter, setCounter] = useState({ count: 0, windowStart: Date.now() })
+  const [initialized, setInitialized] = useState(false)
 
   // Load counter from localStorage on mount
   useEffect(() => {
+    if (authLoading) return
+    
     try {
       const stored = localStorage.getItem(STORAGE_KEY)
       if (stored) {
@@ -22,11 +25,13 @@ export function usePreviewCounter() {
           setCounter(parsed)
         }
       }
+      setInitialized(true)
     } catch {
       // Invalid storage, reset
       setCounter({ count: 0, windowStart: Date.now() })
+      setInitialized(true)
     }
-  }, [])
+  }, [authLoading])
 
   // Persist counter to localStorage when it changes
   useEffect(() => {
@@ -37,15 +42,21 @@ export function usePreviewCounter() {
     }
   }, [counter])
 
-  // Check if user has remaining previews
+  // Check if user has remaining previews - sync check
   const canPreview = useCallback(() => {
-    if (user) return true // Authenticated users have unlimited access
+    if (user?.id) return true // Authenticated users have unlimited access
+    
+    // Check if window has expired
+    if (Date.now() - counter.windowStart > 24 * 60 * 60 * 1000) {
+      return true
+    }
+    
     return counter.count < PREVIEW_LIMIT
-  }, [user, counter.count])
+  }, [user, counter.count, counter.windowStart])
 
   // Increment preview counter - only if limit not reached
   const increment = useCallback(() => {
-    if (user) return // Don't count for authenticated users
+    if (user?.id || authLoading || !initialized) return // Don't count for authenticated users or during loading
     
     setCounter(prev => {
       // Check if window has expired
@@ -60,7 +71,7 @@ export function usePreviewCounter() {
       
       return { ...prev, count: prev.count + 1 }
     })
-  }, [user])
+  }, [user, authLoading, initialized])
 
   // Get remaining previews
   const remaining = user ? Infinity : Math.max(0, PREVIEW_LIMIT - counter.count)
@@ -68,6 +79,21 @@ export function usePreviewCounter() {
   // Calculate time until reset
   const resetInMs = Math.max(0, (counter.windowStart + 24 * 60 * 60 * 1000) - Date.now())
   const resetInHours = Math.ceil(resetInMs / (60 * 60 * 1000))
+
+  // Return loading state until fully initialized
+  if (authLoading || !initialized) {
+    return {
+      count: 0,
+      remaining: PREVIEW_LIMIT,
+      limit: PREVIEW_LIMIT,
+      canPreview: () => true,
+      increment: () => {},
+      resetInMs: 0,
+      resetInHours: 0,
+      isAuthenticated: false,
+      loading: true
+    }
+  }
 
   return {
     count: counter.count,
@@ -77,6 +103,7 @@ export function usePreviewCounter() {
     increment,
     resetInMs,
     resetInHours,
-    isAuthenticated: !!user && !!user.id
+    isAuthenticated: !!user && !!user.id,
+    loading: false
   }
 }

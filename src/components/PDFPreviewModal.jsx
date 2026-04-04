@@ -16,17 +16,17 @@ const PDFPreviewModal = ({
   const [isStandaloneMobile, setIsStandaloneMobile] = useState(false)
   const [forcePdfJsFallback, setForcePdfJsFallback] = useState(false)
 
-  const { increment } = usePreviewCounter()
+  const { increment, canPreview } = usePreviewCounter()
 
   // Reset state when paper changes
   useEffect(() => {
-    if (isOpen && paper) {
+    if (isOpen && paper && canPreview()) {
       setIsLoading(true)
       setError(null)
       setForcePdfJsFallback(false)
       increment()
     }
-  }, [isOpen, paper, increment])
+  }, [isOpen, paper, increment, canPreview])
 
   useEffect(() => {
     const detectStandaloneMobile = () => {

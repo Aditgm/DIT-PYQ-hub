@@ -4,12 +4,16 @@ import { useAuth } from '../context/AuthContext'
 import { Lock } from 'lucide-react'
 
 const PreviewLimitGuard = ({ children }) => {
-  const { canPreview, remaining, limit, resetInHours, isAuthenticated } = usePreviewCounter()
-  const { user } = useAuth()
-  const [showLimitModal, setShowLimitModal] = useState(false)
+  const { canPreview, remaining, limit, resetInHours } = usePreviewCounter()
+  const { user, loading: authLoading } = useAuth()
+
+  // Wait for auth to initialize before making limit decisions
+  if (authLoading) {
+    return null
+  }
 
   // Authenticated users have full access
-  if (isAuthenticated) {
+  if (user?.id) {
     return children
   }
 
