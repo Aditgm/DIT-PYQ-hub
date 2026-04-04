@@ -1,11 +1,13 @@
-import React, { useState, useRef, useCallback } from 'react'
+import React, { useState, useRef, useCallback, useEffect } from 'react'
+import { motion, useReducedMotion } from 'framer-motion'
 
 const TiltCard = ({ 
   children, 
   className = '', 
   tiltEnabled = true,
   tiltIntensity = 1,
-  perspective = 1000
+  perspective = 1000,
+  hoverScale = 1.02
 }) => {
   const [transform, setTransform] = useState({
     rotateX: 0,
@@ -14,9 +16,10 @@ const TiltCard = ({
   })
   const [isHovered, setIsHovered] = useState(false)
   const cardRef = useRef(null)
+  const prefersReducedMotion = useReducedMotion()
 
   const handleMouseMove = useCallback((e) => {
-    if (!tiltEnabled || !cardRef.current) return
+    if (!tiltEnabled || !cardRef.current || prefersReducedMotion) return
 
     const card = cardRef.current
     const rect = card.getBoundingClientRect()
@@ -37,9 +40,9 @@ const TiltCard = ({
     setTransform({
       rotateX,
       rotateY,
-      scale: 1.02
+      scale: hoverScale
     })
-  }, [tiltEnabled, tiltIntensity])
+  }, [tiltEnabled, tiltIntensity, hoverScale, prefersReducedMotion])
 
   const handleMouseEnter = () => {
     setIsHovered(true)
@@ -64,23 +67,31 @@ const TiltCard = ({
       rotateY(${transform.rotateY}deg)
       scale(${transform.scale})
     `,
-    transition: isHovered 
-      ? 'transform 0.1s ease-out' 
-      : 'transform 0.3s ease-out',
     transformStyle: 'preserve-3d',
   }
 
+  const motionProps = prefersReducedMotion ? {} : {
+    whileHover: { scale: hoverScale, y: -2 },
+    transition: {
+      type: 'spring',
+      stiffness: 300,
+      damping: 20,
+      mass: 0.8
+    }
+  }
+
   return (
-    <div
+    <motion.div
       ref={cardRef}
       className={`tilt-card-container ${className}`}
       onMouseMove={handleMouseMove}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       style={transformStyle}
+      {...motionProps}
     >
       {children}
-    </div>
+    </motion.div>
   )
 }
 

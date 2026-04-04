@@ -1,4 +1,4 @@
-import React, { lazy, Suspense } from 'react'
+import React, { lazy, Suspense, useState, useEffect } from 'react'
 import { Route } from 'react-router-dom'
 import { useAuth } from './context/AuthContext'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
@@ -11,6 +11,8 @@ import Footer from './components/Footer'
 import BottomNav from './components/BottomNav'
 import AnimatedRoutes from './components/AnimatedRoutes'
 import PWAManager from './pwa/PWAManager'
+import GlobalSearchModal from './components/GlobalSearchModal'
+import { supabase } from './lib/supabase'
 
 import { useOnboarding } from './hooks/useOnboarding'
 
@@ -19,6 +21,32 @@ function App() {
   useKeyboardShortcuts()
   const { showOnboarding, handleOnboardingClose } = useOnboarding()
   const { user, loading: authLoading } = useAuth()
+  const [showGlobalSearch, setShowGlobalSearch] = useState(false)
+  const [allPapers, setAllPapers] = useState([])
+
+  // Load all papers for global search
+  useEffect(() => {
+    const fetchPapers = async () => {
+      const { data } = await supabase
+        .from('papers')
+        .select('id, title, subject, branch, semester, year, exam_type, status')
+        .eq('status', 'approved')
+      setAllPapers(data || [])
+    }
+    fetchPapers()
+  }, [])
+
+  // Handle Cmd/Ctrl+K global search shortcut
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault()
+        setShowGlobalSearch(prev => !prev)
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [])
 
   // Lazy load page components
   const HomePage = lazy(() => import('./pages/HomePage'))
@@ -79,6 +107,13 @@ function App() {
       </div>
       <Footer />
       {!showOnboarding && <BottomNav />}
+      
+      {/* Global Search Modal */}
+      <GlobalSearchModal
+        isOpen={showGlobalSearch}
+        onClose={() => setShowGlobalSearch(false)}
+        papers={allPapers}
+      />
     </div>
   )
 }

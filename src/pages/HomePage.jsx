@@ -65,8 +65,12 @@ const HomePage = () => {
       <main className="pt-24 pb-12 px-6 relative z-10">
         <div className="max-w-7xl mx-auto">
           {/* Hero */}
-          <div className="text-center mb-10">
-            <h1 className="font-display font-extrabold text-4xl md:text-5xl text-on-surface mb-4">
+           <div className="text-center mb-10">
+            <h1 style={{
+              fontSize: 'clamp(1.5rem, 5vw, 4rem)',
+              lineHeight: 'clamp(1.2, 1.1em, 1.1)',
+              letterSpacing: 'clamp(-0.02em, -0.01em, -0.005em)'
+            }} className="font-display font-extrabold text-on-surface mb-4">
               Your Exam Success{' '}
               <span className="text-gradient">Starts Here</span>
             </h1>

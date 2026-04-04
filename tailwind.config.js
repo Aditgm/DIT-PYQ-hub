@@ -116,5 +116,13 @@ export default {
       },
     },
   },
-  plugins: [],
+  plugins: [
+    function({ addUtilities }) {
+      addUtilities({
+        '.bg-white\\/3': { 'background-color': 'rgba(255, 255, 255, 0.03)' },
+        '.bg-white\\/5': { 'background-color': 'rgba(255, 255, 255, 0.05)' },
+        '.bg-white\\/10': { 'background-color': 'rgba(255, 255, 255, 0.10)' },
+      })
+    }
+  ],
 }
