@@ -410,7 +410,7 @@ export function useBrowsePapers(params) {
   return useQuery({
     queryKey: queryKeys.browsePapers(params),
     queryFn: () => fetchBrowsePapers(params),
-    staleTime: 2 * 60 * 1000,
+    staleTime: 5 * 60 * 1000,
     gcTime: 15 * 60 * 1000,
     refetchOnWindowFocus: false,
     placeholderData: (prev) => prev,
