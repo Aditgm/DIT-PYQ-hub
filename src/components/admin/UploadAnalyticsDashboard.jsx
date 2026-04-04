@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { BarChart3, ArrowUpRight, ArrowDownRight, AlertTriangle, TrendingUp, Users, FileCheck, Clock, Filter, Download, RefreshCw, CheckCircle } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 
@@ -9,7 +9,7 @@ const UploadAnalyticsDashboard = () => {
   const [loading, setLoading] = useState(true)
   const [activeFilter, setActiveFilter] = useState('all')
 
-  useEffect(() => {
+  const loadFunnelData = useCallback(async () => {
     // Use mock data for now - will connect to PostHog backend later
     setFunnelData({
       funnel: [
@@ -43,7 +43,11 @@ const UploadAnalyticsDashboard = () => {
       ]
     })
     setLoading(false)
-  }, [dateRange])
+  }, [setFunnelData, setLoading])
+
+  useEffect(() => {
+    loadFunnelData()
+  }, [dateRange, loadFunnelData])
 
   if (!isAdmin) return null
 
