@@ -2,6 +2,8 @@ import React, { useState, useRef, useEffect, useCallback } from 'react'
 import { useNavigate, Link, useSearchParams } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import * as pdfjsLib from 'pdfjs-dist'
+import pdfWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url'
 import { 
   Upload, FileText, X, CheckCircle, AlertCircle, 
   BookOpen, GraduationCap
@@ -29,6 +31,8 @@ import {
   trackSubmitSuccess,
   trackUploadFailed
 } from '../lib/analytics'
+
+pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorkerSrc
 
 const subjects = [
   'Data Structures & Algorithms',
@@ -108,6 +112,17 @@ const PaperUpload = () => {
   const [uploadStatus, setUploadStatus] = useState(null)
   const [isDragging, setIsDragging] = useState(false)
   const [pdfThumbnail, setPdfThumbnail] = useState(null)
+  const selectedFileMime = file ? getMimeTypeFromFile(file) : null
+  const isPdfFile = selectedFileMime === 'application/pdf'
+  const isWordFile = selectedFileMime === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || selectedFileMime === 'application/msword'
+  const selectedFileBadge = isPdfFile ? 'PDF' : selectedFileMime === 'application/msword' ? 'DOC' : isWordFile ? 'DOCX' : 'FILE'
+  const selectedFileHint = !file
+    ? ''
+    : isPdfFile
+      ? 'Local PDF thumbnail ready.'
+      : isWordFile
+        ? 'Word files cannot render as a live local preview before upload. Inline preview works after upload.'
+        : 'Preview is not available for this file type.'
 
   // ── File validation ────────────────────────────────────────────
   const validateAndSetFile = useCallback((selectedFile) => {
@@ -151,23 +166,15 @@ const PaperUpload = () => {
 
   // ── PDF thumbnail generation ───────────────────────────────────
   useEffect(() => {
-    if (!file) { setPdfThumbnail(null); return }
+    if (!file || getMimeTypeFromFile(file) !== 'application/pdf') {
+      setPdfThumbnail(null)
+      return
+    }
     let cancelled = false
     let pdfInstance = null
     const generate = async () => {
       try {
-        if (!window.pdfjsLib) {
-          await new Promise((resolve, reject) => {
-            const s = document.createElement('script')
-            s.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.min.js'
-            s.onload = resolve
-            s.onerror = reject
-            document.head.appendChild(s)
-          })
-        }
         if (cancelled) return
-        const pdfjsLib = window.pdfjsLib
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.worker.min.mjs'
         const pdf = await pdfjsLib.getDocument({ data: await file.arrayBuffer() }).promise
         pdfInstance = pdf
         if (cancelled) {
@@ -379,12 +386,18 @@ const PaperUpload = () => {
                   <img src={pdfThumbnail} alt="PDF preview" className="w-16 h-20 rounded-lg object-cover border border-white/10 flex-shrink-0" />
                 ) : (
                   <div className="w-16 h-20 rounded-lg bg-surface flex items-center justify-center border border-white/10 flex-shrink-0">
-                    <FileText className="w-8 h-8 text-primary" />
+                    <div className="text-center">
+                      <FileText className="w-8 h-8 text-primary mx-auto mb-1" />
+                      <span className="text-[10px] font-semibold tracking-wide text-primary/80">
+                        {selectedFileBadge}
+                      </span>
+                    </div>
                   </div>
                 )}
                 <div className="flex-1 min-w-0">
                    <p className="font-medium text-on-surface truncate">{file.name}</p>
                    <p className="text-sm text-on-surface-variant">{formatBytes(file.size)}</p>
+                   <p className="text-xs text-on-surface-variant mt-1">{selectedFileHint}</p>
                 </div>
                 <button type="button" onClick={removeFile} className="p-2 hover:bg-red-500/10 rounded-lg transition-colors flex-shrink-0" aria-label="Remove file">
                   <X className="w-5 h-5 text-red-400" />

@@ -1,5 +1,8 @@
 import { supabase } from './supabase'
 
+const DELETE_PAPER_RPC_ENABLED = import.meta.env.VITE_ENABLE_DELETE_PAPER_RPC === 'true'
+const AUDIT_LOGS_ENABLED = import.meta.env.VITE_ENABLE_AUDIT_LOGS === 'true'
+
 /**
  * Standardized error codes matching HTTP semantics.
  * Used by callers to show appropriate UI messages.
@@ -43,18 +46,8 @@ export function isValidUUID(value) {
 }
 
 /**
- * Deletes a paper. Tries the secure RPC first; if the function hasn't been
- * deployed to Supabase yet, falls back to direct table operations.
- *
- * RPC path (preferred):
- *   Calls public.delete_paper() which is SECURITY DEFINER — verifies admin,
- *   checks existence, deletes with cascade, writes audit log.
- *
- * Fallback path:
- *   1. Fetches the paper to confirm it exists (and get its title)
- *   2. Deletes related downloads (enforced by RLS; requires admin DELETE policy)
- *   3. Deletes the paper itself
- *   4. Inserts an audit log row (if the audit_logs table exists)
+ * Deletes a paper. Uses the secure RPC and audit log only when those optional
+ * Supabase objects are enabled for the current deployment.
  *
  * @param {string} paperId - UUID of the paper to delete
  * @returns {Promise<{ success: boolean, deletedPaperId: string, deletedDownloads: number }>}
@@ -65,26 +58,21 @@ export async function deletePaper(paperId) {
     throw { code: PaperServiceError.BAD_REQUEST, message: 'Invalid paper ID format.' }
   }
 
-  // Try RPC first
-  const { data: rpcData, error: rpcError } = await supabase.rpc('delete_paper', { p_paper_id: paperId })
+  if (DELETE_PAPER_RPC_ENABLED) {
+    const { data: rpcData, error: rpcError } = await supabase.rpc('delete_paper', { p_paper_id: paperId })
 
-  if (!rpcError) {
-    return rpcData
+    if (!rpcError) {
+      return rpcData
+    }
+
+    const isMissingFunction = rpcError.code === 'PGRST202'
+      || (rpcError.message && rpcError.message.includes('delete_paper'))
+
+    if (!isMissingFunction) {
+      throw mapError(rpcError)
+    }
   }
 
-  // If the function doesn't exist yet, fall back to direct table operations
-  const isMissingFunction = rpcError.code === 'PGRST202'
-    || (rpcError.message && rpcError.message.includes('delete_paper'))
-
-  if (!isMissingFunction) {
-    throw mapError(rpcError)
-  }
-
-  // ── Fallback: direct table operations ──────────────────────────
-  // ON DELETE CASCADE on downloads.paper_id means deleting the paper
-  // automatically removes all related download rows — no manual cleanup needed.
-
-  // 1. Verify the paper exists
   const { data: paper, error: fetchError } = await supabase
     .from('papers')
     .select('id, title')
@@ -94,7 +82,6 @@ export async function deletePaper(paperId) {
   if (fetchError) throw mapError(fetchError)
   if (!paper) throw { code: PaperServiceError.NOT_FOUND, message: 'Paper not found. It may have already been deleted.' }
 
-  // 2. Delete the paper (CASCADE removes related downloads automatically)
   const { error: paperError } = await supabase
     .from('papers')
     .delete()
@@ -102,20 +89,21 @@ export async function deletePaper(paperId) {
 
   if (paperError) throw mapError(paperError)
 
-  // 3. Best-effort audit log (table may not exist yet if schema not applied)
-  try {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (user) {
-      await supabase.from('audit_logs').insert({
-        user_id: user.id,
-        action: 'delete',
-        entity_type: 'paper',
-        entity_id: paperId,
-        metadata: { title: paper.title },
-      })
+  if (AUDIT_LOGS_ENABLED) {
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        await supabase.from('audit_logs').insert({
+          user_id: user.id,
+          action: 'delete',
+          entity_type: 'paper',
+          entity_id: paperId,
+          metadata: { title: paper.title },
+        })
+      }
+    } catch {
+      // Audit logging is optional and should never block deletion.
     }
-  } catch {
-    // audit_logs table may not exist — don't block deletion
   }
 
   return { success: true, deleted_paper_id: paperId, deleted_downloads: 0 }

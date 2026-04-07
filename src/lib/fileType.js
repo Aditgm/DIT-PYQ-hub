@@ -4,22 +4,42 @@
  * download filename and preview URL logic.
  */
 
-/**
- * Check if a URL points to a DOCX file.
- * @param {string} url
- * @returns {boolean}
- */
-export function isDocxUrl(url) {
-  return typeof url === 'string' && url.toLowerCase().includes('.docx')
+const DOCX_MIME = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+const DOC_MIME = 'application/msword'
+const PDF_MIME = 'application/pdf'
+
+function getFileSignals(input) {
+  if (typeof input === 'string') {
+    return { url: input.toLowerCase(), mime: '', name: '' }
+  }
+
+  const url = (input?.file_url || input?.fileUrl || '').toLowerCase()
+  const mime = (input?.file_type || input?.fileType || input?.mime_type || input?.mimeType || '').toLowerCase()
+  const name = (input?.file_name || input?.fileName || input?.name || '').toLowerCase()
+
+  return { url, mime, name }
 }
 
 /**
- * Check if a URL points to a DOC file.
- * @param {string} url
+ * Check if a file points to a DOCX document.
+ * Accepts either a URL string or a paper/file-like object.
+ * @param {string|object} input
  * @returns {boolean}
  */
-export function isDocUrl(url) {
-  return typeof url === 'string' && url.toLowerCase().includes('.doc') && !isDocxUrl(url)
+export function isDocxUrl(input) {
+  const { url, mime, name } = getFileSignals(input)
+  return mime === DOCX_MIME || url.includes('.docx') || name.endsWith('.docx')
+}
+
+/**
+ * Check if a file points to a DOC document.
+ * Accepts either a URL string or a paper/file-like object.
+ * @param {string|object} input
+ * @returns {boolean}
+ */
+export function isDocUrl(input) {
+  const { url, mime, name } = getFileSignals(input)
+  return mime === DOC_MIME || ((url.includes('.doc') || name.endsWith('.doc')) && !isDocxUrl(input))
 }
 
 /**
@@ -29,9 +49,8 @@ export function isDocUrl(url) {
  * @returns {string} e.g. '.docx', '.doc', or '.pdf'
  */
 export function getFileExtension(paper) {
-  const url = paper?.file_url || paper?.fileUrl || ''
-  if (isDocxUrl(url)) return '.docx'
-  if (isDocUrl(url)) return '.doc'
+  if (isDocxUrl(paper)) return '.docx'
+  if (isDocUrl(paper)) return '.doc'
   return '.pdf'
 }
 
@@ -41,10 +60,9 @@ export function getFileExtension(paper) {
  * @returns {string}
  */
 export function getFileMime(paper) {
-  const url = paper?.file_url || paper?.fileUrl || ''
-  if (isDocxUrl(url)) return 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-  if (isDocUrl(url)) return 'application/msword'
-  return 'application/pdf'
+  if (isDocxUrl(paper)) return DOCX_MIME
+  if (isDocUrl(paper)) return DOC_MIME
+  return PDF_MIME
 }
 
 /**
@@ -64,7 +82,8 @@ export function getDownloadFilename(paper) {
  * @returns {boolean}
  */
 export function isPDF(paper) {
-  return getFileExtension(paper) === '.pdf'
+  const { mime } = getFileSignals(paper)
+  return mime === PDF_MIME || getFileExtension(paper) === '.pdf'
 }
 
 /**
@@ -77,7 +96,7 @@ export function getPreviewUrl(paper) {
   const url = paper?.file_url || paper?.fileUrl
   if (!url) return null
 
-  if (isDocxUrl(url)) {
+  if (isDocxUrl(paper) || isDocUrl(paper)) {
     return `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(url)}`
   }
 
@@ -92,7 +111,7 @@ export function getPreviewUrl(paper) {
 export function getMimeTypeFromFile(file) {
   if (file.type && file.type !== 'application/octet-stream') return file.type
   const name = file.name.toLowerCase()
-  if (name.endsWith('.docx')) return 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-  if (name.endsWith('.doc')) return 'application/msword'
-  return file.type || 'application/pdf'
+  if (name.endsWith('.docx')) return DOCX_MIME
+  if (name.endsWith('.doc')) return DOC_MIME
+  return file.type || PDF_MIME
 }
