@@ -224,7 +224,7 @@ const PaperUpload = () => {
       setUploadProgress(80)
 
       const subjectToSubmit = data.subject === 'Other' ? data.customSubject.trim() : data.subject
-      const { error: dbError } = await supabase
+      const { data: newPaper, error: dbError } = await supabase
         .from('papers')
         .insert({
           title: data.title,
@@ -242,6 +242,8 @@ const PaperUpload = () => {
           status: 'pending',
           created_at: new Date().toISOString()
         })
+        .select('id')
+        .single()
 
       if (dbError) throw new Error(`Database error: ${dbError.message}`)
 
